@@ -132,7 +132,7 @@ body{font-family:var(--sans);font-size:13px;color:var(--txt);background:var(--bg
   <div class="hdr-right">
     <div class="conn-status" id="connStatus" style="border:0.5px solid var(--bdr);border-radius:6px;padding:4px 10px;background:var(--grn-lt)">
       <span class="conn-dot" id="connDot"></span>
-      <span id="connLabel">Connecting...</span>
+      <span id="connLabel">API Connected · Static Mode</span>
     </div>
     <div class="toggle-wrap">
       <span>Tech view</span>
@@ -145,7 +145,7 @@ body{font-family:var(--sans);font-size:13px;color:var(--txt);background:var(--bg
   </div>
 </div>
 
-<div class="prog-steps">
+<div class="prog-steps" id="progSteps">
   <div class="prog-step active" data-s="0"><div class="step-circle">1</div><div class="step-lbl">Collection</div></div>
   <div class="prog-step" data-s="1"><div class="step-circle">2</div><div class="step-lbl">UW Tagging</div></div>
   <div class="prog-step" data-s="2"><div class="step-circle">3</div><div class="step-lbl">GL Mapping</div></div>
@@ -161,7 +161,7 @@ body{font-family:var(--sans);font-size:13px;color:var(--txt);background:var(--bg
   <div class="arch-flow">
     <div class="arch-box active">Browser / UI</div>
     <div class="arch-arrow">&#8594;</div>
-    <div class="arch-box active">Express API :3000</div>
+    <div class="arch-box active">Mock API Engine</div>
     <div class="arch-arrow">&#8594;</div>
     <div class="arch-box">Payment Service</div>
     <div class="arch-arrow">&#8594;</div>
@@ -175,12 +175,6 @@ body{font-family:var(--sans);font-size:13px;color:var(--txt);background:var(--bg
     <div class="arch-arrow">&#8594;</div>
     <div class="arch-box">Refund Service</div>
   </div>
-  <div class="arch-services">
-    <div class="arch-svc"><div class="arch-svc-name">POST /transactions</div><div class="arch-svc-detail">IFSC · duplicate · amount validation</div></div>
-    <div class="arch-svc"><div class="arch-svc-name">POST /convert-policy</div><div class="arch-svc-detail">UW tagging · Bancs sync gate</div></div>
-    <div class="arch-svc"><div class="arch-svc-name">POST /verify-account</div><div class="arch-svc-detail">Penny drop · retry logic · 500 sim</div></div>
-    <div class="arch-svc"><div class="arch-svc-name">POST /refund</div><div class="arch-svc-detail">Hard deps · GL-4404 clearance</div></div>
-  </div>
 </div>
 
 <div class="section">
@@ -193,41 +187,24 @@ body{font-family:var(--sans);font-size:13px;color:var(--txt);background:var(--bg
   <div class="form-grid">
     <div class="form-field">
       <label class="form-label">Amount (₹)</label>
-      <input class="form-input" type="number" id="f-amount" placeholder="122000" value="150000"/>
+      <input class="form-input" type="number" id="f-amount" value="150000"/>
     </div>
     <div class="form-field">
       <label class="form-label">Premium Amount (₹)</label>
-      <input class="form-input" type="number" id="f-premium" placeholder="114500" value="114500"/>
-    </div>
-    <div class="form-field">
-      <label class="form-label">Bank IFSC</label>
-      <input class="form-input" type="text" id="f-ifsc" placeholder="HDFC0000001" value="HDFC0000001" style="font-family:var(--mono)"/>
-    </div>
-    <div class="form-field">
-      <label class="form-label">Bank Name</label>
-      <input class="form-input" type="text" id="f-bank" placeholder="HDFC Bank" value="HDFC Bank"/>
+      <input class="form-input" type="number" id="f-premium" value="114500"/>
     </div>
     <div class="form-field">
       <label class="form-label">Account Number</label>
-      <input class="form-input" type="text" id="f-acct" placeholder="50100123456789" value="50100123456789" style="font-family:var(--mono)"/>
-    </div>
-    <div class="form-field">
-      <label class="form-label">UTR Reference</label>
-      <input class="form-input" type="text" id="f-utr" placeholder="HDFC3240918001" style="font-family:var(--mono)"/>
-    </div>
-    <div class="form-field">
-      <label class="form-label">Proposal ID</label>
-      <input class="form-input" type="text" id="f-proposal" placeholder="2024-88412" value="2024-88412"/>
+      <input class="form-input" type="text" id="f-acct" value="50100123456789"/>
     </div>
     <div class="form-field">
       <label class="form-label">Account Holder Name</label>
-      <input class="form-input" type="text" id="f-holder" placeholder="Gukhan V" value="Gukhan V"/>
+      <input class="form-input" type="text" id="f-holder" value="Gukhan V"/>
     </div>
   </div>
   <div class="form-actions">
     <button class="btn btn-or" id="submitTxnBtn">Submit NEFT Transaction</button>
     <button class="btn" id="loadTxnsBtn">Refresh Feed</button>
-    <span class="form-err" id="txnErr"></span>
   </div>
   <div id="txnFeed"></div>
 </div>
@@ -242,14 +219,13 @@ body{font-family:var(--sans);font-size:13px;color:var(--txt);background:var(--bg
   </div>
   <div class="uw-grid" id="uwGrid">
     <div class="uw-card">
-      <div class="uw-prop">Proposal ID</div><div class="uw-val" id="uwProposal" style="font-family:var(--mono)">—</div>
+      <div class="uw-prop">Proposal ID</div><div class="uw-val" id="uwProposal">—</div>
       <div style="margin-top:10px"><div class="uw-prop">Insured Name</div><div class="uw-val" id="uwName">—</div></div>
-      <div style="margin-top:10px"><div class="uw-prop">Transaction ID</div><div class="uw-val" id="uwTxnId" style="font-family:var(--mono);font-size:11px">—</div></div>
     </div>
     <div class="uw-card">
-      <div class="uw-prop">Premium Amount</div><div class="uw-val" id="uwPremium" style="color:var(--or)">—</div>
-      <div style="margin-top:10px"><div class="uw-prop">Collection Received</div><div class="uw-val" id="uwCollected" style="color:var(--grn)">—</div></div>
-      <div style="margin-top:10px"><div class="uw-prop">Excess / Shortfall</div><div class="uw-val" id="uwExcess" style="color:var(--amb)">—</div></div>
+      <div class="uw-prop">Premium Amount</div><div class="uw-val" id="uwPremium">—</div>
+      <div style="margin-top:10px"><div class="uw-prop">Collection Received</div><div class="uw-val" id="uwCollected">—</div></div>
+      <div style="margin-top:10px"><div class="uw-prop">Excess / Shortfall</div><div class="uw-val" id="uwExcess">—</div></div>
     </div>
   </div>
   <div class="sync-bar-wrap">
@@ -263,363 +239,191 @@ body{font-family:var(--sans);font-size:13px;color:var(--txt);background:var(--bg
     <div class="sec-title"><span class="step-badge">Step 3</span>Accounting &amp; GL Mapping · Post-Conversion</div>
     <span class="badge badge-pur" id="policyBadge">Awaiting conversion</span>
   </div>
-  <div style="padding:4px 0">
-    <table class="gl-table">
-      <thead><tr><th>GL Code</th><th>Description</th><th>Amount</th><th>Status</th><th>Ledger</th></tr></thead>
-      <tbody id="glBody"><tr><td colspan="5" style="padding:16px 10px;color:var(--hint);text-align:center;font-size:11px">GL entries generated after policy conversion</td></tr></tbody>
-    </table>
-  </div>
+  <table class="gl-table">
+    <thead><tr><th>GL Code</th><th>Description</th><th>Amount</th><th>Status</th><th>Ledger</th></tr></thead>
+    <tbody id="glBody"><tr><td colspan="5" style="padding:16px;text-align:center;color:var(--hint)">Awaiting Step 2</td></tr></tbody>
+  </table>
 </div>
 
 <div class="section">
   <div class="sec-hdr">
     <div class="sec-title"><span class="step-badge">Step 4</span>Penny Drop Guardrail · Hard Dependency</div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <button class="btn btn-red" id="retryPennyBtn" style="display:none">Retry Verification</button>
-      <button class="btn" id="runPennyBtn" disabled>Run Penny Drop</button>
-    </div>
+    <button class="btn btn-or" id="runPennyBtn" disabled>Run Penny Drop</button>
   </div>
-  <div id="errBanner" style="display:none" class="err-banner">
-    <span style="font-size:14px;flex-shrink:0">!</span>
-    <div id="errBannerMsg">Bank API 500 Error — penny drop failed</div>
-  </div>
-  <div style="padding:12px 16px">
-    <div class="penny-grid" id="pennyGrid">
-      <div style="padding:16px;color:var(--hint);font-size:11px;grid-column:1/-1;text-align:center">Beneficiary accounts loaded after policy conversion</div>
-    </div>
-  </div>
+  <div id="errBanner" style="display:none" class="err-banner">Bank API 500 Error — penny drop failed</div>
+  <div style="padding:12px 16px" id="pennyGrid"></div>
   <div class="refund-row">
     <div id="refundLock" class="refund-lock" style="color:var(--red)">
-      <div class="lock-icon" id="lockIcon" style="background:var(--red-lt);border:0.5px solid var(--red-bdr);color:var(--red)">X</div>
-      <span id="lockMsg">Complete steps 1–4 to unlock refund</span>
+      <div class="lock-icon" id="lockIcon" style="background:var(--red-lt);border:0.5px solid var(--red-bdr)">X</div>
+      <span id="lockMsg">Step 4 Pending — Refund Locked</span>
     </div>
     <button class="btn btn-or" id="refundBtn" disabled>Initiate Refund</button>
   </div>
 </div>
 
 <div class="section">
-  <div class="sec-hdr">
-    <div class="sec-title">
-      <span style="font-family:var(--mono);font-size:11px;color:var(--grn);font-weight:600">$</span>
-      Live System Logs · ops-engine-prod
-    </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn" id="fetchLogsBtn">Fetch Backend Logs</button>
-      <button class="btn" id="clearLogBtn">Clear</button>
-    </div>
-  </div>
+  <div class="sec-hdr"><div class="sec-title">$ Live System Logs</div></div>
   <div class="terminal" id="terminal"></div>
 </div>
 
-</div><script>
-// ─── MOCK BACKEND INTERCEPTOR (PM Prototype Logic) ───────────────────────────
-const localDb = {
-  transactions: [],
-  policies: {},
-  glEntries: {},
-  simErr: false
-};
+</div>
 
-window.fetch = async (url, options) => {
-  const path = url.replace('http://localhost:3000/api', '');
-  const body = options?.body ? JSON.parse(options.body) : {};
-
-  // POST /transactions
-  if (path === '/transactions' && options.method === 'POST') {
-    const amount = Number(body.amount);
-    const premium = Number(body.premium_amount);
-    const excess = amount - premium;
-    const txnId = "NEFT" + Math.floor(Math.random() * 9000000000 + 1000000000);
-    const txn = {
-      transaction_id: txnId,
-      trace_id: "TRC-" + Math.random().toString(36).substr(2, 8).toUpperCase(),
-      utr: body.utr || "HDFC" + Math.floor(Math.random() * 900000000),
-      bank_ifsc: body.bank_ifsc,
-      bank_name: body.bank_name,
-      account_number: body.account_number,
-      amount: amount,
-      premium_amount: premium,
-      excess: excess > 0 ? excess : 0,
-      shortfall: excess < 0 ? Math.abs(excess) : 0,
-      payment_status: excess > 0 ? "excess" : excess < 0 ? "partial" : "received",
-      status: "pending",
-      bancs_status: "pushed",
-      proposal_id: body.proposal_id,
-      created_at: new Date().toISOString()
-    };
-    localDb.transactions.push(txn);
-    return { ok: true, json: async () => ({ transaction: txn }) };
-  }
-
-  // GET /transactions
-  if (path === '/transactions' && options.method !== 'POST') {
-    return { ok: true, json: async () => ({ transactions: localDb.transactions }) };
-  }
-
-  // GET /transactions/:id (Simulate settling)
-  if (path.startsWith('/transactions/')) {
-    const id = path.split('/').pop();
-    const txn = localDb.transactions.find(t => t.transaction_id === id);
-    if (txn) txn.status = "settled";
-    return { ok: true, json: async () => ({ transaction: txn }) };
-  }
-
-  // POST /convert-policy
-  if (path === '/convert-policy') {
-    const policy_id = "POL-2024-" + Math.floor(Math.random() * 90000) + "-A";
-    const txn = localDb.transactions.find(t => t.transaction_id === body.transaction_id);
-    const premium = txn.premium_amount;
-    const excess = txn.excess;
-    const gst = Math.round(premium * 0.18);
-    const netPremium = premium - gst;
-
-    const gl_entries = [
-      { code: "4401", desc: "First Year Premium", amount: netPremium, status: "posted", ledger: "Revenue A/c" },
-      { code: "4402", desc: "Risk Rider / Add-on Premium", amount: 15961, status: "posted", ledger: "Revenue A/c" },
-      { code: "4403", desc: "GST Collected (18%)", amount: gst, status: "posted", ledger: "Tax Liability A/c" }
-    ];
-
-    if (excess > 0) {
-      gl_entries.push({ code: "4404", desc: "Excess Collection — Refund Hold", amount: excess, status: "cleared", ledger: "Suspense A/c", note: "Auto-mapped" });
-    }
-
-    localDb.glEntries[policy_id] = gl_entries;
-    return { ok: true, json: async () => ({ policy: { policy_id }, gl_entries }) };
-  }
-
-  // POST /verify-account
-  if (path === '/verify-account') {
-    if (localDb.simErr) {
-      return { ok: false, json: async () => ({ status: "failed", error: "Bank API 500", error_code: "GATEWAY_TIMEOUT", retries_attempted: 3 }) };
-    }
-    return { ok: true, json: async () => ({ status: "verified", trace_id: "PEN-" + Math.random().toString(36).substr(2, 6).toUpperCase() }) };
-  }
-
-  // POST /refund
-  if (path === '/refund') {
-    const refund = { refund_id: "REF-" + Math.floor(Math.random() * 900000), amount: body.amount || 35500, utr: "UTRR" + Math.floor(Math.random() * 9000000) };
-    return { ok: true, json: async () => ({ refund }) };
-  }
-
-  // Simulation controls
-  if (path === '/simulate/bank-failure') { localDb.simErr = body.enabled; return { ok: true, json: async () => ({}) }; }
-  if (path === '/simulate/reset') { localDb.simErr = false; return { ok: true, json: async () => ({}) }; }
-  if (path === '/health') return { ok: true, json: async () => ({}) };
-
-  return { ok: true, json: async () => ({}) };
-};
-
-// ─── ORIGINAL UI LOGIC (Modified to work with Mock) ───────────────────────────
-const API = 'http://localhost:3000/api';
-let state = {
+<script>
+// --- GLOBAL STATE ---
+const state = {
   txns: [],
   activeTxn: null,
   policyId: null,
-  glEntries: [],
-  beneficiaries: [],
-  bankFailureMode: false,
-  logLines: [],
-  simErr: false
+  simErr: false,
+  pennyVerified: false,
+  logLines: []
 };
 
-const techOn = () => document.getElementById('techToggle').checked;
+// --- MOCK INTERCEPTOR ---
+window.fetch = async (url, options) => {
+  const body = options?.body ? JSON.parse(options.body) : {};
+  if (url.includes('transactions')) {
+    const amt = Number(body.amount);
+    const pre = Number(body.premium_amount);
+    const txn = { id: "NEFT" + Date.now(), amount: amt, premium: pre, excess: amt - pre, status: "pending" };
+    state.txns.push(txn);
+    return { ok: true, json: async () => ({ transaction: txn, transactions: state.txns }) };
+  }
+  if (url.includes('verify-account')) {
+    if (state.simErr) return { ok: false, json: async () => ({ status: "failed" }) };
+    return { ok: true, json: async () => ({ status: "verified" }) };
+  }
+  return { ok: true, json: async () => ({ status: "success" }) };
+};
+
+// --- CORE FUNCTIONS ---
 const fmt = n => '₹' + Number(n).toLocaleString('en-IN');
-const tsNow = () => new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-
-async function apiFetch(path, opts = {}) {
-  const res = await fetch(API + path, {
-    headers: { 'Content-Type': 'application/json' },
-    ...opts
-  });
-  const data = await res.json();
-  return { ok: res.ok, status: res.status, data };
-}
-
-function addLog(type, msg, fromBackend = false) {
-  const cls = {INFO:'log-info',SYNC:'log-sync',WARN:'log-warn',ERR:'log-err',
-                GL:'log-gl',LOG:'log-info',PENNY:'log-penny',SYSTEM:'log-sync'}[type] || 'log-info';
-  const src = fromBackend ? '<span style="color:#475569">[BE]</span> ' : '';
-  state.logLines.push(`<div class="log-line"><span class="log-ts">[${tsNow()}]</span> <span class="${cls}">[${type}]</span> ${src}${msg}</div>`);
-  if (state.logLines.length > 120) state.logLines.shift();
+const addLog = (type, msg) => {
+  const line = `<div class="log-line"><span class="log-info">[${new Date().toLocaleTimeString()}] [${type}]</span> ${msg}</div>`;
+  state.logLines.push(line);
   const t = document.getElementById('terminal');
-  t.innerHTML = state.logLines.join('');
+  t.innerHTML = state.logLines.slice(-15).join('');
   t.scrollTop = t.scrollHeight;
-}
+};
 
-function updateProgress(done) {
+const updateProgress = (step) => {
   document.querySelectorAll('.prog-step').forEach((el, i) => {
-    el.className = 'prog-step' + (i < done ? ' done' : i === done ? ' active' : '');
+    el.className = 'prog-step' + (i < step ? ' done' : i === step ? ' active' : '');
   });
-}
+};
 
-async function checkConnection() {
-  document.getElementById('connDot').className = 'conn-dot';
-  document.getElementById('connLabel').textContent = 'API Connected · localhost:3000';
-  addLog('INFO', 'Backend API connected — ops-engine-prod ready');
-}
-
-async function submitTransaction() {
-  const btn = document.getElementById('submitTxnBtn');
-  const errEl = document.getElementById('txnErr');
-  errEl.textContent = '';
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
-
-  const body = {
-    amount: Number(document.getElementById('f-amount').value),
-    premium_amount: Number(document.getElementById('f-premium').value),
-    bank_ifsc: document.getElementById('f-ifsc').value.trim().toUpperCase(),
-    bank_name: document.getElementById('f-bank').value.trim(),
-    account_number: document.getElementById('f-acct').value.trim(),
-    utr: document.getElementById('f-utr').value.trim() || undefined,
-    proposal_id: document.getElementById('f-proposal').value.trim(),
-  };
-
-  addLog('INFO', `Submitting NEFT: ${body.bank_ifsc} ${fmt(body.amount)}`);
-
-  const { ok, data } = await apiFetch('/transactions', { method: 'POST', body: JSON.stringify(body) });
-  const txn = data.transaction;
-  state.activeTxn = txn;
-  addLog('SYNC', `Transaction received: ${txn.transaction_id} · ${txn.payment_status} · trace:${txn.trace_id}`, true);
-
-  if (txn.payment_status === 'partial') {
-    addLog('WARN', `Partial payment: shortfall ₹${txn.shortfall} — policy conversion will be blocked`);
-  } else if (txn.payment_status === 'excess') {
-    addLog('GL', `Excess amount ₹${txn.excess} — will be mapped to GL-4404 Suspense on conversion`);
-  }
-
-  await loadTransactions();
-  updateUWPanel(txn);
-  pollForSettlement(txn.transaction_id);
-  updateProgress(1);
-  btn.disabled = false;
-  btn.textContent = 'Submit NEFT Transaction';
-}
-
-async function loadTransactions() {
-  const { data } = await apiFetch('/transactions');
-  state.txns = data.transactions || [];
+// STEP 1: SUBMIT
+document.getElementById('submitTxnBtn').onclick = async () => {
+  const res = await fetch('transactions', { method: 'POST', body: JSON.stringify({ 
+    amount: document.getElementById('f-amount').value, 
+    premium_amount: document.getElementById('f-premium').value 
+  })});
+  const data = await res.json();
+  state.activeTxn = data.transaction;
+  addLog('INFO', `NEFT Received: ${fmt(state.activeTxn.amount)}`);
   renderFeed();
-  document.getElementById('txnCountBadge').textContent = state.txns.length + ' transaction' + (state.txns.length !== 1 ? 's' : '');
-}
+  startSettlement();
+};
 
-function renderFeed() {
-  const c = document.getElementById('txnFeed');
-  if (techOn()) {
-    c.innerHTML = state.txns.map(t => `<div class="json-block"><span class="json-key">"id"</span>: "${t.transaction_id}", <span class="json-key">"amt"</span>: ${t.amount}, <span class="json-key">"excess"</span>: ${t.excess}</div>`).join('');
-  } else {
-    c.innerHTML = state.txns.map(t => `<div class="txn-row"><div class="txn-meta"><div class="txn-id">${t.transaction_id}</div></div><div class="txn-amt">${fmt(t.amount)}</div></div>`).join('');
-  }
-}
+const renderFeed = () => {
+  const tech = document.getElementById('techToggle').checked;
+  const feed = document.getElementById('txnFeed');
+  feed.innerHTML = state.txns.map(t => tech 
+    ? `<div class="json-block">{"id":"${t.id}", "amt":${t.amount}, "excess":${t.excess}}</div>`
+    : `<div class="txn-row"><div class="txn-id">${t.id}</div><div class="txn-amt">${fmt(t.amount)}</div></div>`).join('');
+};
 
-function updateUWPanel(txn) {
-  document.getElementById('uwProposal').textContent = txn.proposal_id;
-  document.getElementById('uwName').textContent = document.getElementById('f-holder').value;
-  document.getElementById('uwTxnId').textContent = txn.transaction_id;
-  document.getElementById('uwPremium').textContent = fmt(txn.premium_amount);
-  document.getElementById('uwCollected').textContent = fmt(txn.amount);
-  const diff = txn.excess > 0 ? `+${fmt(txn.excess)} excess` : txn.shortfall > 0 ? `-${fmt(txn.shortfall)} shortfall` : 'Exact match';
-  document.getElementById('uwExcess').textContent = diff;
-}
-
-function pollForSettlement(txnId) {
+// STEP 2: SETTLEMENT
+const startSettlement = () => {
+  updateProgress(1);
   let pct = 0;
-  const iv = setInterval(async () => {
-    pct = Math.min(100, pct + 25);
+  const iv = setInterval(() => {
+    pct += 20;
     document.getElementById('syncFill').style.width = pct + '%';
     document.getElementById('syncPct').textContent = pct + '%';
-    if (pct === 100) {
+    if (pct >= 100) {
       clearInterval(iv);
-      const { data } = await apiFetch('/transactions/' + txnId);
-      document.getElementById('syncBadge').className = 'badge badge-grn';
-      document.getElementById('syncBadge').textContent = '100% Settled';
+      document.getElementById('syncBadge').className = "badge badge-grn";
+      document.getElementById('syncBadge').textContent = "Settled";
       document.getElementById('convertBtn').disabled = false;
-      addLog('SYNC', `Bancs confirmed: ${txnId} settled`);
+      document.getElementById('uwProposal').textContent = "2024-88412";
+      document.getElementById('uwName').textContent = document.getElementById('f-holder').value;
+      document.getElementById('uwPremium').textContent = fmt(state.activeTxn.premium);
+      document.getElementById('uwCollected').textContent = fmt(state.activeTxn.amount);
+      document.getElementById('uwExcess').textContent = fmt(state.activeTxn.excess);
+      addLog('SYNC', 'Bancs Confirmation Received');
     }
-  }, 500);
-}
+  }, 300);
+};
 
-async function convertPolicy() {
-  const { data } = await apiFetch('/convert-policy', { method: 'POST', body: JSON.stringify({ transaction_id: state.activeTxn.transaction_id }) });
-  state.policyId = data.policy.policy_id;
-  state.glEntries = data.gl_entries;
-  state.beneficiaries = [{ name: document.getElementById('f-holder').value, account_number: document.getElementById('f-acct').value, bank_ifsc: document.getElementById('f-ifsc').value }];
-  renderGLEntries(data.gl_entries);
-  renderPennyCards();
-  document.getElementById('runPennyBtn').disabled = false;
+// STEP 3: CONVERT
+document.getElementById('convertBtn').onclick = () => {
+  state.policyId = "POL-88412-A";
   document.getElementById('policyBadge').textContent = state.policyId;
-  document.getElementById('policyBadge').className = 'badge badge-grn';
+  document.getElementById('policyBadge').className = "badge badge-grn";
+  document.getElementById('convertBtn').disabled = true;
+  document.getElementById('convertBtn').textContent = "Policy Active";
+  document.getElementById('convertBtn').className = "btn btn-grn";
+  
+  const excess = state.activeTxn.excess;
+  document.getElementById('glBody').innerHTML = `
+    <tr><td class="gl-code">4401</td><td>Premium</td><td>${fmt(state.activeTxn.premium)}</td><td><span class="badge badge-grn">Posted</span></td><td>Revenue</td></tr>
+    ${excess > 0 ? `<tr><td class="gl-code">4404</td><td>Excess Hold</td><td>${fmt(excess)}</td><td><span class="badge badge-amb">Held</span></td><td>Suspense</td></tr>` : ''}
+  `;
+  
+  document.getElementById('pennyGrid').innerHTML = `
+    <div class="penny-card">
+      <div class="penny-name">${document.getElementById('f-holder').value}</div>
+      <div class="penny-status" id="pennyStat"><span class="status-dot dot-amb"></span><span class="badge badge-amb">Pending</span></div>
+    </div>`;
+  
+  document.getElementById('runPennyBtn').disabled = false;
   updateProgress(2);
-}
+  addLog('GL', 'Entries Mapped to Ledger');
+};
 
-function renderGLEntries(entries) {
-  const tbody = document.getElementById('glBody');
-  tbody.innerHTML = entries.map(e => `<tr><td class="gl-code">${e.code}</td><td>${e.desc}</td><td>${fmt(e.amount)}</td><td><span class="badge badge-grn">${e.status}</span></td><td>${e.ledger}</td></tr>`).join('');
-}
-
-function renderPennyCards() {
-  const g = document.getElementById('pennyGrid');
-  g.innerHTML = state.beneficiaries.map(b => `<div class="penny-card" id="penny-${b.account_number}"><div class="penny-name">${b.name}</div><div class="penny-status"><span class="status-dot dot-amb"></span><span class="badge badge-amb">Pending</span></div></div>`).join('');
-  checkRefundUnlock();
-}
-
-async function runPennyDrop() {
-  const b = state.beneficiaries[0];
-  const { data, ok } = await apiFetch('/verify-account', { method: 'POST' });
-  const el = document.getElementById('penny-' + b.account_number);
-  if (ok) {
-    el.innerHTML = `<div class="penny-name">${b.name}</div><div class="penny-status"><span class="status-dot dot-grn"></span><span class="badge badge-grn">Verified</span></div>`;
-    addLog('PENNY', 'Verification Success', true);
-    updateProgress(3);
-  } else {
-    state.simErr = true;
-    document.getElementById('errBanner').style.display = 'flex';
-    document.getElementById('retryPennyBtn').style.display = 'inline-flex';
-    addLog('ERR', 'Bank API Failure', true);
-  }
-  checkRefundUnlock();
-}
-
-function checkRefundUnlock() {
-  const btn = document.getElementById('refundBtn');
-  const allVerified = !!document.querySelector('.badge-grn');
-  if (state.policyId && allVerified && !state.simErr) {
-    btn.disabled = false;
-    document.getElementById('lockMsg').textContent = 'Refund Unlocked';
+// STEP 4: PENNY DROP
+document.getElementById('runPennyBtn').onclick = async () => {
+  addLog('INFO', 'Initiating Penny Drop...');
+  const res = await fetch('verify-account');
+  if (res.ok) {
+    state.pennyVerified = true;
+    document.getElementById('pennyStat').innerHTML = `<span class="status-dot dot-grn"></span><span class="badge badge-grn">Verified</span>`;
+    document.getElementById('refundLock').style.color = "var(--grn)";
+    document.getElementById('lockIcon').style.background = "var(--grn-lt)";
+    document.getElementById('lockIcon').textContent = "✓";
+    document.getElementById('lockIcon').style.color = "var(--grn)";
+    document.getElementById('lockMsg').textContent = "Account Verified — Refund Unlocked";
+    document.getElementById('refundBtn').disabled = false;
     document.getElementById('refundBtn').textContent = `Initiate Refund ${fmt(state.activeTxn.excess)}`;
+    updateProgress(3);
+    addLog('INFO', 'Penny Drop Success');
+  } else {
+    document.getElementById('errBanner').style.display = "block";
+    addLog('ERR', 'Penny Drop Failed');
   }
-}
+};
 
-async function retryPennyDrop() {
-  await apiFetch('/simulate/reset', { method: 'POST' });
-  state.simErr = false;
-  document.getElementById('errBanner').style.display = 'none';
-  document.getElementById('retryPennyBtn').style.display = 'none';
-  runPennyDrop();
-}
+// STEP 5: REFUND
+document.getElementById('refundBtn').onclick = () => {
+  addLog('GL', 'GL-4404 Cleared');
+  addLog('INFO', 'Refund Dispatched to StarPay');
+  document.getElementById('refundBtn').disabled = true;
+  document.getElementById('refundBtn').textContent = "Refund Dispatched";
+  document.getElementById('refundBtn').className = "btn btn-grn";
+  updateProgress(5); // Hits 100%
+  addLog('SUCCESS', 'Lifecycle Completed');
+};
 
-async function initiateRefund() {
-  const { data } = await apiFetch('/refund', { method: 'POST', body: JSON.stringify({ amount: state.activeTxn.excess }) });
-  addLog('LOG', `Refund Dispatched: ${data.refund.refund_id}`, true);
-  document.getElementById('refundBtn').textContent = 'Refund Dispatched';
-  updateProgress(4);
-}
+// TECH TOGGLE
+document.getElementById('techToggle').onchange = () => renderFeed();
 
-async function simulateBankFailure() {
-  state.bankFailureMode = !state.bankFailureMode;
-  await apiFetch('/simulate/bank-failure', { method: 'POST', body: JSON.stringify({ enabled: state.bankFailureMode }) });
-  document.getElementById('simErrBtn').textContent = state.bankFailureMode ? 'Disable Bank Failure' : 'Simulate Bank 500';
-}
-
-document.getElementById('submitTxnBtn').addEventListener('click', submitTransaction);
-document.getElementById('convertBtn').addEventListener('click', convertPolicy);
-document.getElementById('runPennyBtn').addEventListener('click', runPennyDrop);
-document.getElementById('retryPennyBtn').addEventListener('click', retryPennyDrop);
-document.getElementById('refundBtn').addEventListener('click', initiateRefund);
-document.getElementById('simErrBtn').addEventListener('click', simulateBankFailure);
-
-checkConnection();
-loadTransactions();
+// SIM ERROR
+document.getElementById('simErrBtn').onclick = () => {
+  state.simErr = !state.simErr;
+  document.getElementById('simErrBtn').className = state.simErr ? "btn btn-or" : "btn btn-red";
+  addLog('WARN', `Simulation: Bank 500 ${state.simErr ? 'ON' : 'OFF'}`);
+};
 </script>
 </body>
 </html>
