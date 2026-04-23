@@ -3,324 +3,219 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Insurance Payment & Refund Lifecycle</title>
+<title>Insurance Refund Integrity Engine | PM Prototype</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --or:#FF5733;--or-lt:#FFF1EE;--or-bdr:#FFD5CC;--or-dk:#CC3D1F;
+  --or:#FF5733;--or-lt:#FFF1EE;--or-bdr:#FFD5CC;
   --grn:#16A34A;--grn-lt:#F0FDF4;--grn-bdr:#BBF7D0;
   --red:#DC2626;--red-lt:#FEF2F2;--red-bdr:#FECACA;
-  --amb:#D97706;--amb-lt:#FFFBEB;--amb-bdr:#FDE68A;
   --blu:#2563EB;--blu-lt:#EFF6FF;--blu-bdr:#BFDBFE;
-  --pur:#7C3AED;--pur-lt:#F5F3FF;--pur-bdr:#DDD6FE;
   --bg:#F8F9FA;--card:#FFFFFF;--bdr:#E5E7EB;
-  --txt:#111827;--muted:#6B7280;--hint:#9CA3AF;
-  --mono:'JetBrains Mono','Courier New',monospace;
-  --sans:'Inter',sans-serif;
+  --txt:#111827;--muted:#6B7280;--mono:'JetBrains Mono',monospace;
 }
-body{font-family:var(--sans);font-size:13px;color:var(--txt);background:var(--bg);min-height:100vh}
-.wrap{padding:20px;max-width:980px;margin:0 auto}
-.hdr{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:0.5px solid var(--bdr);border-radius:12px;padding:14px 18px;margin-bottom:14px;flex-wrap:wrap;gap:10px}
-.hdr-left h1{font-size:15px;font-weight:600;color:var(--txt)}
-.hdr-left p{font-size:11px;color:var(--muted);margin-top:2px}
-.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.toggle-wrap{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
-.toggle{position:relative;width:34px;height:19px;cursor:pointer}
-.toggle input{opacity:0;width:0;height:0;position:absolute}
-.slider{position:absolute;inset:0;background:#D1D5DB;border-radius:10px;transition:background .2s}
-.slider:before{content:'';position:absolute;width:13px;height:13px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
-.toggle input:checked+.slider{background:var(--or)}
-.toggle input:checked+.slider:before{transform:translateX(15px)}
-.btn{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;border-radius:6px;padding:6px 12px;cursor:pointer;border:0.5px solid var(--bdr);background:var(--card);color:var(--txt);font-family:var(--sans);transition:background .15s}
-.btn:hover{background:#F9FAFB}
-.btn-or{background:var(--or);color:#fff;border-color:var(--or)}
-.btn-red{background:var(--red-lt);color:var(--red);border-color:var(--red-bdr)}
-.btn-grn{background:var(--grn);color:#fff;border-color:var(--grn)}
-.btn:disabled{opacity:0.4;cursor:not-allowed;pointer-events:none}
-.live-dot{width:6px;height:6px;background:var(--or);border-radius:50%;animation:blink 1.2s infinite;flex-shrink:0}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.section{background:var(--card);border:0.5px solid var(--bdr);border-radius:12px;margin-bottom:12px;overflow:hidden}
-.sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:0.5px solid var(--bdr);flex-wrap:wrap;gap:6px}
-.sec-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;color:var(--txt)}
-.step-badge{font-size:10px;font-weight:500;background:var(--or-lt);color:var(--or);border:0.5px solid var(--or-bdr);border-radius:4px;padding:1px 7px;white-space:nowrap}
-.badge{font-size:10px;font-weight:500;border-radius:20px;padding:2px 8px;border:0.5px solid transparent;white-space:nowrap}
-.badge-grn{background:var(--grn-lt);color:var(--grn);border-color:var(--grn-bdr)}
-.badge-red{background:var(--red-lt);color:var(--red);border-color:var(--red-bdr)}
-.badge-amb{background:var(--amb-lt);color:var(--amb);border-color:var(--amb-bdr)}
-.badge-blu{background:var(--blu-lt);color:var(--blu);border-color:var(--blu-bdr)}
-.badge-or{background:var(--or-lt);color:var(--or);border-color:var(--or-bdr)}
-.txn-row{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:0.5px solid var(--bdr);animation:fadein .35s ease}
-.txn-id{font-size:11px;font-weight:500;font-family:var(--mono)}
-.txn-amt{font-size:12px;font-weight:600;text-align:right}
-.json-block{font-family:var(--mono);font-size:10px;background:#1e293b;border-radius:6px;padding:10px 12px;margin:6px 16px;line-height:1.7;color:#f8fafc;border:0.5px solid var(--bdr);overflow-x:auto}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px}
+body{font-family:'Inter',sans-serif;font-size:12px;color:var(--txt);background:var(--bg);padding:20px}
+.wrap{max-width:1100px;margin:0 auto}
+.hdr{display:flex;justify-content:space-between;background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:15px 20px;margin-bottom:15px}
+.section{background:var(--card);border:1px solid var(--bdr);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.sec-hdr{padding:10px 16px;border-bottom:1px solid var(--bdr);background:#fafafa;display:flex;justify-content:space-between;font-weight:600}
+.form-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;padding:16px}
 .form-field{display:flex;flex-direction:column;gap:4px}
-.form-label{font-size:10px;color:var(--muted);font-weight:500;text-transform:uppercase}
-.form-input{height:32px;border:0.5px solid var(--bdr);border-radius:6px;padding:0 10px;font-size:12px;background:var(--card);outline:none}
-.form-actions{padding:0 16px 14px}
-.uw-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px}
-.uw-card{border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px}
-.uw-prop{font-size:10px;color:var(--muted);margin-bottom:3px;text-transform:uppercase}
-.uw-val{font-size:13px;font-weight:500}
-.sync-bar-wrap{padding:0 16px 14px}
-.sync-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}
-.sync-track{height:5px;background:#F3F4F6;border-radius:3px;overflow:hidden}
-.sync-fill{height:100%;background:var(--or);border-radius:3px;transition:width .5s ease}
-.gl-table{width:100%;border-collapse:collapse;font-size:12px}
-.gl-table th{font-size:10px;font-weight:500;color:var(--muted);padding:8px 10px;text-align:left;border-bottom:0.5px solid var(--bdr);text-transform:uppercase}
-.gl-table td{padding:10px;border-bottom:0.5px solid var(--bdr)}
-.penny-card{border:0.5px solid var(--bdr);border-radius:8px;padding:11px 12px}
-.penny-name{font-size:12px;font-weight:500}
-.penny-status{display:flex;align-items:center;gap:5px;margin-top:5px}
-.status-dot{width:6px;height:6px;border-radius:50%}
-.dot-grn{background:var(--grn)}.dot-amb{background:var(--amb)}.dot-red{background:var(--red)}
-.refund-row{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-top:0.5px solid var(--bdr);background:#FAFAFA}
-.refund-lock{display:flex;align-items:center;gap:7px;font-size:11px}
-.lock-icon{width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600}
-.terminal{background:#0F172A;border-radius:8px;font-family:var(--mono);font-size:10px;line-height:1.8;padding:15px;max-height:220px;overflow-y:auto;margin:12px 16px;color:#cbd5e1;box-shadow:inset 0 2px 10px rgba(0,0,0,0.3)}
-.log-ts{color:#64748b;margin-right:8px}
-.log-tag{font-weight:600;padding:0 4px;border-radius:2px;margin-right:8px;text-transform:uppercase}
-.tag-info{background:#1e293b;color:#38bdf8}.tag-sync{background:#064e3b;color:#34d399}.tag-err{background:#7f1d1d;color:#f87171}.tag-gl{background:#4c1d95;color:#c084fc}
-.prog-steps{display:flex;align-items:center;margin-bottom:14px;background:var(--card);border:0.5px solid var(--bdr);border-radius:12px;padding:14px 20px}
-.prog-step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
-.prog-step:not(:last-child):after{content:'';position:absolute;top:12px;left:60%;width:80%;height:1.5px;background:var(--bdr);z-index:0}
-.prog-step.done:not(:last-child):after{background:var(--or)}
-.step-circle{width:25px;height:25px;border-radius:50%;border:1.5px solid var(--bdr);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;z-index:1;color:var(--muted)}
-.prog-step.done .step-circle{background:var(--or);border-color:var(--or);color:#fff}
-.prog-step.active .step-circle{border-color:var(--or);color:var(--or)}
-.step-lbl{font-size:9px;color:var(--muted);margin-top:5px}
-.arch-flow{display:flex;align-items:center;gap:0;padding:14px 16px;overflow-x:auto}
-.arch-box{background:#F8FAFC;border:0.5px solid var(--bdr);border-radius:6px;padding:7px 12px;font-size:10px;font-weight:500;white-space:nowrap}
-.arch-box.active{border-color:var(--or);color:var(--or);background:var(--or-lt);box-shadow: 0 0 10px rgba(255,87,51,0.2)}
-.arch-arrow{font-size:14px;color:var(--hint);padding:0 6px}
+.form-label{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600}
+.form-input{height:32px;border:1px solid var(--bdr);border-radius:6px;padding:0 10px;font-size:12px;outline:none}
+.form-input:focus{border-color:var(--or)}
+.form-input[readonly]{background:#f3f4f6}
+.btn{padding:8px 16px;border-radius:6px;border:1px solid var(--bdr);cursor:pointer;font-weight:500;font-size:11px;transition:0.2s}
+.btn-or{background:var(--or);color:#fff;border:none}
+.btn-blu{background:var(--blu);color:#fff;border:none}
+.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.badge-or{background:var(--or-lt);color:var(--or)}
+.badge-grn{background:var(--grn-lt);color:var(--grn)}
+.badge-red{background:var(--red-lt);color:var(--red)}
+.gl-table{width:100%;border-collapse:collapse}
+.gl-table th{text-align:left;padding:10px 16px;background:#f8fafc;font-size:10px;color:var(--muted);text-transform:uppercase}
+.gl-table td{padding:12px 16px;border-bottom:1px solid var(--bdr)}
+.terminal{background:#0F172A;color:#cbd5e1;padding:15px;border-radius:8px;font-family:var(--mono);font-size:11px;height:180px;overflow-y:auto;margin:10px 0}
+.db-view{padding:16px;background:#fff;border-top:5px solid var(--blu)}
+.db-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.db-table th, .db-table td{border:1px solid #e2e8f0;padding:8px;text-align:left}
 </style>
 </head>
 <body>
+
 <div class="wrap">
-
-<div class="hdr">
-  <div class="hdr-left">
-    <h1>Insurance Payment &amp; Refund Lifecycle</h1>
-    <p>StarPay · Bancs · UW Engine · GL Mapper · Penny Drop API &nbsp;·&nbsp; v2.5.0-prod</p>
-  </div>
-  <div class="hdr-right">
-    <div class="conn-status" style="border:0.5px solid var(--bdr);border-radius:6px;padding:4px 10px;background:var(--grn-lt)">
-      <span class="conn-dot" style="width:5px;height:5px;border-radius:50%;background:var(--grn);display:inline-block;margin-right:5px"></span>
-      <span style="font-size:10px">API Connected</span>
+    <div class="hdr">
+        <div>
+            <h1 style="font-size:18px">NEFT Lifecycle Engine</h1>
+            <p style="color:var(--muted)">Platform: StarPay-Connect v3.2 | UTR Orchestration Active</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+            <div style="font-size:11px;color:var(--muted)">Match Threshold: <input type="number" id="threshold" value="85" style="width:40px;padding:2px"> %</div>
+            <button class="btn btn-blu" onclick="toggleDb()">DB Trace</button>
+        </div>
     </div>
-    <div class="toggle-wrap">
-      <span>Tech view</span>
-      <label class="toggle"><input type="checkbox" id="techToggle"><span class="slider"></span></label>
+
+    <div class="section">
+        <div class="sec-hdr"><span>STEP 1: Bank NEFT Inward (Real-time Feed)</span> <span class="badge badge-or">NEFT-INWARD</span></div>
+        <div class="form-grid">
+            <div class="form-field"><label class="form-label">UTR Number</label><input class="form-input" id="f-utr" placeholder="Enter HDFC... or ICIC..." style="border:2px solid var(--or)"></div>
+            <div class="form-field"><label class="form-label">Sender Bank</label><input class="form-input" id="f-bank" readonly></div>
+            <div class="form-field"><label class="form-label">Account Number</label><input class="form-input" id="f-acc" readonly></div>
+            <div class="form-field"><label class="form-label">Amount Recv (₹)</label><input class="form-input" id="f-amt" readonly></div>
+            <div class="form-field"><label class="form-label">A/C Holder (Bank Record)</label><input class="form-input" id="f-bank-name" readonly></div>
+            <div class="form-field"><label class="form-label">Proposal ID</label><input class="form-input" id="f-prop" value="PRP-992341"></div>
+            <div class="form-field"><label class="form-label">Plan Name</label><input class="form-input" id="f-plan" value="Star Health Optima"></div>
+            <div class="form-field"><label class="form-label">Policy Holder (Proposal)</label><input class="form-input" id="f-prop-name" value="Gukhan Veeramuthu"></div>
+        </div>
+        <div style="padding:0 16px 16px"><button class="btn btn-or" id="receiptBtn" disabled>Process Receipting</button></div>
     </div>
-    <button class="btn" id="opsViewBtn" style="font-size:10px;background:var(--blu-lt);color:var(--blu);border-color:var(--blu-bdr)">Ops View Off</button>
-    <button class="btn btn-red" id="simErrBtn">Simulate Bank 500</button>
-    <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--or);font-weight:500">
-      <div class="live-dot"></div>LIVE
+
+    <div class="section">
+        <div class="sec-hdr"><span>STEP 2 & 3: UW Tagging & GL Posting</span></div>
+        <div class="form-grid" style="background:#fafafa">
+            <div class="form-field"><label class="form-label">Receipt No</label><div id="r-no" style="font-weight:600">—</div></div>
+            <div class="form-field"><label class="form-label">UW Tagging</label><div id="r-tag" class="badge">PENDING</div></div>
+            <div class="form-field"><label class="form-label">Premium Amount</label><div id="r-prem" style="font-weight:600">₹1,14,500</div></div>
+            <div class="form-field"><label class="form-label">Excess for Refund</label><div id="r-exc" style="color:var(--or);font-weight:600">—</div></div>
+        </div>
+        <table class="gl-table">
+            <thead><tr><th>GL Code</th><th>Description</th><th>Debit (₹)</th><th>Credit (₹)</th><th>Status</th></tr></thead>
+            <tbody id="gl-body"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">Awaiting Receipting...</td></tr></tbody>
+        </table>
     </div>
-  </div>
-</div>
 
-<div class="prog-steps">
-  <div class="prog-step active" id="step-1"><div class="step-circle">1</div><div class="step-lbl">Collection</div></div>
-  <div class="prog-step" id="step-2"><div class="step-circle">2</div><div class="step-lbl">UW Tagging</div></div>
-  <div class="prog-step" id="step-3"><div class="step-circle">3</div><div class="step-lbl">GL Mapping</div></div>
-  <div class="prog-step" id="step-4"><div class="step-circle">4</div><div class="step-lbl">Penny Drop</div></div>
-  <div class="prog-step" id="step-5"><div class="step-circle">5</div><div class="step-lbl">Refund</div></div>
-</div>
+    <div class="section">
+        <div class="sec-hdr"><span>STEP 4: Penny Drop Guardrail (Fuzzy Match Logic)</span></div>
+        <div style="padding:16px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+                <div id="penny-meta" style="font-weight:600;font-size:13px">Beneficiary: —</div>
+                <div style="color:var(--muted);font-size:10px">Attempt Cost: ₹1.00 | Gateway: StarPay-Retail</div>
+            </div>
+            <button class="btn btn-or" id="pennyBtn" disabled>Execute Penny Drop</button>
+        </div>
+        <div id="fail-fallback" style="display:none;padding:12px 16px;background:var(--red-lt);border-top:1px solid var(--red-bdr)">
+            <p style="color:var(--red);font-weight:600">Match Fail! Threshold not met. Fallback required.</p>
+            <button class="btn" style="margin-top:8px" onclick="alert('Workflow: Initiate Mobile OTP Fetch...')">Fetch Correct A/C via Mobile (Future Project)</button>
+        </div>
+    </div>
 
-<div class="section">
-  <div class="sec-hdr"><div class="sec-title">System Architecture · Data Flow</div></div>
-  <div class="arch-flow">
-    <div class="arch-box active" id="box-0">UI/Browser</div><div class="arch-arrow">→</div>
-    <div class="arch-box" id="box-1">Payment Svc</div><div class="arch-arrow">→</div>
-    <div class="arch-box" id="box-2">Bancs Core</div><div class="arch-arrow">→</div>
-    <div class="arch-box" id="box-3">UW Engine</div><div class="arch-arrow">→</div>
-    <div class="arch-box" id="box-4">GL Mapper</div><div class="arch-arrow">→</div>
-    <div class="arch-box" id="box-5">Penny Drop API</div><div class="arch-arrow">→</div>
-    <div class="arch-box" id="box-6">Refund Svc</div>
-  </div>
-</div>
+    <div class="section">
+        <div class="sec-hdr"><span>STEP 5: Automated Refund Initiation</span></div>
+        <div style="padding:20px;display:flex;justify-content:space-between;align-items:center;background:var(--grn-lt)">
+            <div id="refund-lk">🔒 Refund Locked (Verify A/C First)</div>
+            <button class="btn btn-or" id="refundBtn" disabled>Initiate Refund Dispatch</button>
+        </div>
+    </div>
 
-<div class="section">
-  <div class="sec-hdr"><div class="sec-title"><span class="step-badge">Step 1</span>Real-time Collections</div><span class="badge badge-or" id="txnCount">0 txn</span></div>
-  <div class="form-grid">
-    <div class="form-field"><label class="form-label">Amount (₹)</label><input class="form-input" type="number" id="f-amount" value="150000"/></div>
-    <div class="form-field"><label class="form-label">Premium (₹)</label><input class="form-input" type="number" id="f-premium" value="114500"/></div>
-    <div class="form-field"><label class="form-label">Holder Name</label><input class="form-input" type="text" id="f-holder" value="Gukhan V"/></div>
-    <div class="form-field"><label class="form-label">Trace ID</label><input class="form-input" type="text" id="f-trace" value="TRC-88412-X" readonly style="background:#f1f5f9"/></div>
-  </div>
-  <div class="form-actions"><button class="btn btn-or" id="submitBtn">Submit NEFT Transaction</button></div>
-  <div id="txnFeed"></div>
-</div>
+    <div class="terminal" id="term"></div>
 
-<div class="section">
-  <div class="sec-hdr"><div class="sec-title"><span class="step-badge">Step 2</span>UW Tagging</div><button class="btn btn-or" id="convertBtn" disabled>Convert to Policy</button></div>
-  <div class="uw-grid">
-    <div class="uw-card"><div class="uw-prop">Insured</div><div class="uw-val" id="uwName">—</div></div>
-    <div class="uw-card"><div class="uw-prop">Reconciliation</div><div class="uw-val" id="uwExcess" style="color:var(--amb)">—</div></div>
-  </div>
-  <div class="sync-bar-wrap">
-    <div class="sync-label"><span>Bancs Sync Status</span><span id="syncPct">Pending</span></div>
-    <div class="sync-track"><div class="sync-fill" id="syncFill" style="width:0%"></div></div>
-  </div>
-</div>
-
-<div class="section">
-  <div class="sec-hdr"><div class="sec-title"><span class="step-badge">Step 3</span>GL Mapping</div><span class="badge badge-blu" id="glMeta" style="display:none">Batch ID: 9942</span></div>
-  <table class="gl-table">
-    <thead><tr><th>Code</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
-    <tbody id="glBody"><tr><td colspan="4" style="padding:16px;text-align:center;color:var(--hint)">Awaiting Settlement</td></tr></tbody>
-  </table>
-</div>
-
-<div class="section">
-  <div class="sec-hdr"><div class="sec-title"><span class="step-badge">Step 4</span>Penny Drop</div><button class="btn btn-or" id="pennyBtn" disabled>Run Penny Drop</button></div>
-  <div id="errBanner" style="display:none" class="err-banner">504 GATEWAY_TIMEOUT: Bank API is unreachable</div>
-  <div style="padding:12px 16px" id="pGrid"></div>
-  <div class="refund-row">
-    <div id="refundLock" class="refund-lock" style="color:var(--red)"><div class="lock-icon" id="lkIcon" style="background:var(--red-lt);border:0.5px solid var(--red-bdr)">X</div><span id="lkMsg">Hard Dependency: Step 4 Required</span></div>
-    <button class="btn btn-or" id="refundBtn" disabled>Initiate Refund</button>
-  </div>
-</div>
-
-<div class="section"><div class="terminal" id="term"></div></div>
-
+    <div class="db-view" id="db-section" style="display:none">
+        <h3 style="margin-bottom:10px">DATABASE_TRACE: tbl_lifecycle_audit</h3>
+        <table class="db-table">
+            <thead><tr><th>UTR_REF</th><th>MATCH_SCORE</th><th>GL_STATE</th><th>ACC_STATUS</th><th>STAMP</th></tr></thead>
+            <tbody id="db-body"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-const state = { txns: [], activeTxn: null, simErr: false, ops: false };
+const state = { utrActive: false, excess: 0, logs: [], matchScore: 0 };
 
 const addLog = (tag, msg) => {
-  const t = document.getElementById('term');
-  const cls = `tag-${tag.toLowerCase()}`;
-  const trace = state.activeTxn ? state.activeTxn.trace : "GLOBAL";
-  const line = `<div><span class="log-ts">${new Date().toLocaleTimeString()}</span><span class="log-tag ${cls}">${tag}</span> [${trace}] ${msg}</div>`;
-  state.logs = (state.logs || []);
-  state.logs.push(line);
-  t.innerHTML = state.logs.slice(-12).join('');
-  t.scrollTop = t.scrollHeight;
+    const line = `<div><span style="color:#64748b">[${new Date().toLocaleTimeString()}]</span> <span style="color:var(--or);font-weight:700">[${tag}]</span> ${msg}</div>`;
+    state.logs.push(line);
+    const t = document.getElementById('term');
+    t.innerHTML = state.logs.slice(-10).join('');
+    t.scrollTop = t.scrollHeight;
 };
 
-const updateArch = (idx) => {
-  document.querySelectorAll('.arch-box').forEach((b, i) => b.classList.toggle('active', i === idx));
+// 1. UTR AUTOFILL LOGIC
+document.getElementById('f-utr').oninput = (e) => {
+    const val = e.target.value.toUpperCase();
+    if (val.length >= 6) {
+        document.getElementById('f-bank').value = val.startsWith('HDFC') ? "HDFC Bank Ltd" : "ICICI Bank Ltd";
+        document.getElementById('f-acc').value = "5010098234511";
+        document.getElementById('f-amt').value = "150000";
+        document.getElementById('f-bank-name').value = "Gukhan V"; // Scrambled name for fuzzy match
+        document.getElementById('receiptBtn').disabled = false;
+        state.utrActive = true;
+        addLog('BANK_API', 'UTR Record matched. Payload hydrated from Bank Statement Feed.');
+    }
 };
 
-const updateStep = (step) => {
-  document.querySelectorAll('.prog-step').forEach((el, i) => {
-    el.className = 'prog-step' + (i < step ? ' done' : i === step ? ' active' : '');
-  });
-};
-
-const renderTxn = () => {
-  const tech = document.getElementById('techToggle').checked;
-  const feed = document.getElementById('txnFeed');
-  feed.innerHTML = state.txns.map(t => tech 
-    ? `<div class="json-block">{ "id": "${t.id}", "trace": "${t.trace}", "amt": ${t.amt}, "excess": ${t.excess}, "bancs_sync": "OK" }</div>`
-    : `<div class="txn-row"><div class="txn-id">${t.id}</div><div class="txn-amt">₹${t.amt.toLocaleString()}</div></div>`).join('');
-};
-
-// ACTIONS
-document.getElementById('submitBtn').onclick = () => {
-  const amt = Number(document.getElementById('f-amount').value);
-  const pre = Number(document.getElementById('f-premium').value);
-  const trace = document.getElementById('f-trace').value;
-  const txn = { id: "NEFT"+Date.now().toString().slice(-5), amt, pre, excess: amt-pre, trace };
-  state.txns.push(txn);
-  state.activeTxn = txn;
-  
-  updateArch(1);
-  addLog('INFO', `Payload received at /v1/collection. Validating IFSC...`);
-  setTimeout(() => {
-    updateArch(2);
-    addLog('SYNC', `Bancs push successful. Handshake: ACK_200. Settlement processing...`);
-    renderTxn();
-    document.getElementById('txnCount').textContent = state.txns.length + " txn";
-    updateStep(1);
+// 2. RECEIPTING & GL (PRE-REFUND)
+document.getElementById('receiptBtn').onclick = () => {
+    state.excess = 150000 - 114500;
+    document.getElementById('r-no').textContent = "RC-88231-X";
+    document.getElementById('r-tag').textContent = "SUCCESS";
+    document.getElementById('r-tag').className = "badge badge-grn";
+    document.getElementById('r-exc').textContent = "₹" + state.excess.toLocaleString();
     
-    let pct = 0;
-    const iv = setInterval(() => {
-      pct += 25;
-      document.getElementById('syncFill').style.width = pct + '%';
-      document.getElementById('syncPct').textContent = pct + '%';
-      if (pct >= 100) {
-        clearInterval(iv);
-        updateArch(3);
-        addLog('SYNC', `Settlement Finalized. Response: { status: "SETTLED", gate: "HDFC_E" }`);
-        document.getElementById('uwName').textContent = document.getElementById('f-holder').value;
-        document.getElementById('uwExcess').textContent = "₹"+txn.excess.toLocaleString() + " Excess";
-        document.getElementById('convertBtn').disabled = false;
-      }
-    }, 250);
-  }, 400);
+    document.getElementById('gl-body').innerHTML = `
+        <tr><td>4401</td><td>First Year Premium</td><td>0</td><td>1,14,500</td><td><span class="badge badge-grn">POSTED</span></td></tr>
+        <tr><td>4403</td><td>GST Collected (18%)</td><td>0</td><td>20,610</td><td><span class="badge badge-grn">POSTED</span></td></tr>
+    `;
+    
+    document.getElementById('pennyBtn').disabled = false;
+    document.getElementById('penny-meta').textContent = "Beneficiary: Gukhan V (Bank Record)";
+    addLog('UW_ENGINE', 'Receipt generated. Premium tagged to Plan: Star Health Optima.');
+    addLog('GL_ENGINE', 'GL-4401 & GL-4403 entries created in Revenue Ledger.');
 };
 
-document.getElementById('convertBtn').onclick = () => {
-  updateArch(4);
-  addLog('GL', `Orchestrating Ledger Splits for Trace: ${state.activeTxn.trace}`);
-  document.getElementById('convertBtn').disabled = true;
-  document.getElementById('convertBtn').textContent = "Policy Active";
-  document.getElementById('convertBtn').className = "btn btn-grn";
-  
-  const e = state.activeTxn.excess;
-  document.getElementById('glBody').innerHTML = `
-    <tr><td>4401</td><td>Revenue: Premium</td><td>₹${state.activeTxn.pre.toLocaleString()}</td><td><span class="badge badge-grn">Posted</span></td></tr>
-    ${e > 0 ? `<tr><td>4404</td><td>Suspense: Excess Hold</td><td>₹${e.toLocaleString()}</td><td><span class="badge badge-or">Held</span></td></tr>` : ''}`;
-  
-  document.getElementById('pGrid').innerHTML = `<div class="penny-card"><div>${document.getElementById('f-holder').value}</div><div id="pS"><span class="badge badge-amb">Awaiting Auth</span></div></div>`;
-  document.getElementById('pennyBtn').disabled = false;
-  updateStep(2);
-};
-
+// 3. PENNY DROP FUZZY LOGIC
 document.getElementById('pennyBtn').onclick = () => {
-  addLog('INFO', `POST /v1/verify-account. Triggering ₹1.00 credit pulse...`);
-  if (state.simErr) {
-    addLog('ERR', `Connection to ICICI Gateway failed. Retry exhausted. Error_Code: 504`);
-    document.getElementById('errBanner').style.display = "flex";
-    return;
-  }
-  updateArch(5);
-  setTimeout(() => {
-    document.getElementById('pS').innerHTML = `<span class="badge badge-grn">Verified ✓</span>`;
-    document.getElementById('pennyBtn').disabled = true;
-    document.getElementById('pennyBtn').textContent = "Verified";
-    document.getElementById('pennyBtn').className = "btn btn-grn";
-    document.getElementById('lkIcon').textContent = "✓";
-    document.getElementById('lkIcon').style.cssText = "background:var(--grn-lt);color:var(--grn);border:0.5px solid var(--grn-bdr)";
-    document.getElementById('lkMsg').textContent = "All Guardrails Passed — Refund Unlocked";
-    document.getElementById('refundLock').style.color = "var(--grn)";
-    document.getElementById('refundBtn').disabled = false;
-    document.getElementById('refundBtn').textContent = `Initiate Refund ₹${state.activeTxn.excess}`;
-    addLog('SYNC', `Bank Verification Complete. Destination Account matches Holder.`);
-    updateStep(3);
-  }, 600);
+    addLog('PENNY_DROP', 'Initiating ₹1.00 credit pulse to A/C ...4511');
+    const bankName = document.getElementById('f-bank-name').value; // Gukhan V
+    const propName = document.getElementById('f-prop-name').value; // Gukhan Veeramuthu
+    const threshold = Number(document.getElementById('threshold').value);
+    
+    // Simple fuzzy simulation
+    state.matchScore = 78; // Hardcoded simulation score
+    
+    setTimeout(() => {
+        if (state.matchScore >= threshold) {
+            addLog('SUCCESS', `Fuzzy Match: ${state.matchScore}%. Account Verified.`);
+            document.getElementById('refund-lk').innerHTML = "✅ Guardrail Passed (Match: " + state.matchScore + "%)";
+            document.getElementById('refundBtn').disabled = false;
+        } else {
+            addLog('FAIL', `Fuzzy Match: ${state.matchScore}%. Threshold: ${threshold}%. Blocked.`);
+            document.getElementById('fail-fallback').style.display = "block";
+            document.getElementById('refund-lk').innerHTML = "❌ Integrity Blocked: Name Mismatch";
+        }
+        updateDbTable();
+    }, 800);
 };
 
+// 4. REFUND DISPATCH & FINAL GL
 document.getElementById('refundBtn').onclick = () => {
-  updateArch(6);
-  addLog('GL', `GL-4404 Dr. Cleared. Transaction flowing to StarPay Gateway.`);
-  document.getElementById('refundBtn').disabled = true;
-  document.getElementById('refundBtn').textContent = "Dispatched";
-  document.getElementById('refundBtn').className = "btn btn-grn";
-  updateStep(5);
-  addLog('SYNC', `Refund Lifecycle Completed. UTR Generated: HDFC${Date.now().toString().slice(-6)}`);
+    addLog('GL_ENGINE', 'Creating Clearing Entry for GL-4404.');
+    const tbody = document.getElementById('gl-body');
+    tbody.innerHTML += `<tr><td>4404</td><td>Excess Refund Hold</td><td>${state.excess}</td><td>0</td><td><span class="badge badge-or">CLEARED</span></td></tr>`;
+    
+    document.getElementById('refundBtn').textContent = "DISPATCHED TO BANK";
+    document.getElementById('refundBtn').disabled = true;
+    addLog('BANK_GATEWAY', `Refund of ₹${state.excess} pushed to StarPay API. UTR: REF${Date.now().toString().slice(-6)}`);
 };
 
-// OPS VIEW TOGGLE
-document.getElementById('opsViewBtn').onclick = () => {
-  state.ops = !state.ops;
-  document.getElementById('opsViewBtn').textContent = state.ops ? "Ops View On" : "Ops View Off";
-  document.getElementById('glMeta').style.display = state.ops ? "block" : "none";
-  addLog('INFO', `View Context Switched to ${state.ops ? 'ADMIN' : 'SUPPORT'}`);
-};
+function toggleDb() {
+    const s = document.getElementById('db-section');
+    s.style.display = s.style.display === 'none' ? 'block' : 'none';
+}
 
-document.getElementById('techToggle').onchange = renderTxn;
-document.getElementById('simErrBtn').onclick = () => {
-  state.simErr = !state.simErr;
-  document.getElementById('simErrBtn').className = state.simErr ? "btn btn-or" : "btn btn-red";
-};
+function updateDbTable() {
+    const tbody = document.getElementById('db-body');
+    const utr = document.getElementById('f-utr').value;
+    tbody.innerHTML = `<tr>
+        <td>${utr}</td>
+        <td>${state.matchScore}%</td>
+        <td>${state.matchScore > 80 ? 'CLEARED' : 'HELD'}</td>
+        <td>${state.matchScore > 80 ? 'VERIFIED' : 'MISMATCH'}</td>
+        <td>${new Date().toISOString()}</td>
+    </tr>`;
+}
 
-addLog('INFO', 'Lifecycle Engine Initialized. v2.5.0-prod.');
+addLog('SYSTEM', 'Lifecycle Engine ready. Awaiting Bank NEFT feed...');
 </script>
 </body>
 </html>
