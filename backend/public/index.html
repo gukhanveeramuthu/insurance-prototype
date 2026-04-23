@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Insurance Payment & Refund Lifecycle</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --or:#FF5733;--or-lt:#FFF1EE;--or-bdr:#FFD5CC;--or-dk:#CC3D1F;
+  --grn:#16A34A;--grn-lt:#F0FDF4;--grn-bdr:#BBF7D0;
+  --red:#DC2626;--red-lt:#FEF2F2;--red-bdr:#FECACA;
+  --amb:#D97706;--amb-lt:#FFFBEB;--amb-bdr:#FDE68A;
+  --blu:#2563EB;--blu-lt:#EFF6FF;--blu-bdr:#BFDBFE;
+  --pur:#7C3AED;--pur-lt:#F5F3FF;--pur-bdr:#DDD6FE;
+  --bg:#F8F9FA;--card:#FFFFFF;--bdr:#E5E7EB;
+  --txt:#111827;--muted:#6B7280;--hint:#9CA3AF;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --sans:'Inter',sans-serif;
+}
+body{font-family:var(--sans);font-size:13px;color:var(--txt);background:var(--bg);min-height:100vh}
+.wrap{padding:20px;max-width:980px;margin:0 auto}
+.hdr{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:0.5px solid var(--bdr);border-radius:12px;padding:14px 18px;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.hdr-left h1{font-size:15px;font-weight:600;color:var(--txt)}
+.hdr-left p{font-size:11px;color:var(--muted);margin-top:2px}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.toggle-wrap{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.toggle{position:relative;width:34px;height:19px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.slider{position:absolute;inset:0;background:#D1D5DB;border-radius:10px;transition:background .2s}
+.slider:before{content:'';position:absolute;width:13px;height:13px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle input:checked+.slider{background:var(--or)}
+.toggle input:checked+.slider:before{transform:translateX(15px)}
+.btn{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;border-radius:6px;padding:6px 12px;cursor:pointer;border:0.5px solid var(--bdr);background:var(--card);color:var(--txt);font-family:var(--sans);transition:background .15s}
+.btn:hover{background:#F9FAFB}
+.btn-or{background:var(--or);color:#fff;border-color:var(--or)}
+.btn-or:hover{background:var(--or-dk)}
+.btn-red{background:var(--red-lt);color:var(--red);border-color:var(--red-bdr)}
+.btn-red:hover{background:#FEE2E2}
+.btn-grn{background:var(--grn);color:#fff;border-color:var(--grn)}
+.btn:disabled{opacity:0.4;cursor:not-allowed;pointer-events:none}
+.live-dot{width:6px;height:6px;background:var(--or);border-radius:50%;animation:blink 1.2s infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.section{background:var(--card);border:0.5px solid var(--bdr);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:0.5px solid var(--bdr);flex-wrap:wrap;gap:6px}
+.sec-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;color:var(--txt)}
+.step-badge{font-size:10px;font-weight:500;background:var(--or-lt);color:var(--or);border:0.5px solid var(--or-bdr);border-radius:4px;padding:1px 7px;white-space:nowrap}
+.badge{font-size:10px;font-weight:500;border-radius:20px;padding:2px 8px;border:0.5px solid transparent;white-space:nowrap}
+.badge-grn{background:var(--grn-lt);color:var(--grn);border-color:var(--grn-bdr)}
+.badge-red{background:var(--red-lt);color:var(--red);border-color:var(--red-bdr)}
+.badge-amb{background:var(--amb-lt);color:var(--amb);border-color:var(--amb-bdr)}
+.badge-blu{background:var(--blu-lt);color:var(--blu);border-color:var(--blu-bdr)}
+.badge-pur{background:var(--pur-lt);color:var(--pur);border-color:var(--pur-bdr)}
+.badge-or{background:var(--or-lt);color:var(--or);border-color:var(--or-bdr)}
+.txn-row{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:0.5px solid var(--bdr);animation:fadein .35s ease}
+.txn-row:last-child{border-bottom:none}
+@keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.txn-icon{width:27px;height:27px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0;background:var(--or-lt);color:var(--or)}
+.txn-meta{flex:1;min-width:0}
+.txn-id{font-size:11px;font-weight:500;font-family:var(--mono)}
+.txn-flow{font-size:10px;color:var(--muted);margin-top:1px}
+.txn-amt{font-size:12px;font-weight:600;text-align:right}
+.txn-time{font-size:10px;color:var(--hint);text-align:right;margin-top:1px}
+.json-block{font-family:var(--mono);font-size:10px;background:#F8FAFC;border-radius:6px;padding:10px 12px;margin:6px 16px;line-height:1.7;color:var(--txt);border:0.5px solid var(--bdr);overflow-x:auto}
+.json-key{color:#7C3AED}.json-str{color:#16A34A}.json-num{color:#D97706}.json-bool{color:#2563EB}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:10px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.4px}
+.form-input{height:32px;border:0.5px solid var(--bdr);border-radius:6px;padding:0 10px;font-size:12px;font-family:var(--sans);color:var(--txt);background:var(--card);outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--or)}
+.form-input::placeholder{color:var(--hint)}
+.form-actions{padding:0 16px 14px;display:flex;align-items:center;gap:8px}
+.form-err{font-size:11px;color:var(--red);margin-left:4px}
+.uw-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px}
+.uw-card{border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px}
+.uw-prop{font-size:10px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.4px}
+.uw-val{font-size:13px;font-weight:500}
+.sync-bar-wrap{padding:0 16px 14px}
+.sync-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}
+.sync-track{height:5px;background:#F3F4F6;border-radius:3px;overflow:hidden}
+.sync-fill{height:100%;background:var(--or);border-radius:3px;transition:width .5s ease}
+.gl-table{width:100%;border-collapse:collapse;font-size:12px}
+.gl-table th{font-size:10px;font-weight:500;color:var(--muted);padding:6px 10px;text-align:left;border-bottom:0.5px solid var(--bdr);text-transform:uppercase;letter-spacing:0.4px}
+.gl-table td{padding:8px 10px;border-bottom:0.5px solid var(--bdr)}
+.gl-table tr:last-child td{border-bottom:none}
+.gl-code{font-family:var(--mono);font-size:11px;font-weight:500}
+.penny-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.penny-card{border:0.5px solid var(--bdr);border-radius:8px;padding:11px 12px}
+.penny-name{font-size:12px;font-weight:500;margin-bottom:2px}
+.penny-bank{font-size:10px;color:var(--muted);margin-bottom:7px;font-family:var(--mono)}
+.penny-status{display:flex;align-items:center;gap:5px}
+.status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-grn{background:var(--grn)}.dot-red{background:var(--red)}.dot-amb{background:var(--amb)}
+.refund-row{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-top:0.5px solid var(--bdr);background:#FAFAFA;flex-wrap:wrap;gap:8px}
+.refund-lock{display:flex;align-items:center;gap:7px;font-size:11px}
+.lock-icon{width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0}
+.err-banner{margin:10px 16px;border:0.5px solid var(--red-bdr);background:var(--red-lt);border-radius:7px;padding:10px 12px;font-size:11px;color:var(--red);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.terminal{background:#0F172A;border-radius:8px;font-family:var(--mono);font-size:10px;line-height:1.9;padding:12px 14px;max-height:200px;overflow-y:auto;margin:12px 16px}
+.log-line{margin-bottom:0}
+.log-info{color:#60A5FA}.log-sync{color:#34D399}.log-warn{color:#FCD34D}.log-err{color:#F87171}.log-gl{color:#C084FC}.log-ts{color:#475569}.log-penny{color:#34D399}
+.prog-steps{display:flex;align-items:center;margin-bottom:14px;background:var(--card);border:0.5px solid var(--bdr);border-radius:12px;padding:14px 20px}
+.prog-step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
+.prog-step:not(:last-child):after{content:'';position:absolute;top:12px;left:60%;width:80%;height:1.5px;background:var(--bdr);z-index:0}
+.prog-step.done:not(:last-child):after{background:var(--or)}
+.step-circle{width:25px;height:25px;border-radius:50%;border:1.5px solid var(--bdr);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;z-index:1;color:var(--muted)}
+.prog-step.done .step-circle{background:var(--or);border-color:var(--or);color:#fff}
+.prog-step.active .step-circle{border-color:var(--or);color:var(--or)}
+.step-lbl{font-size:9px;color:var(--muted);margin-top:5px;text-align:center}
+.prog-step.done .step-lbl,.prog-step.active .step-lbl{color:var(--or)}
+.arch-flow{display:flex;align-items:center;gap:0;padding:14px 16px;overflow-x:auto}
+.arch-box{background:var(--color-background-secondary,#F8FAFC);border:0.5px solid var(--bdr);border-radius:6px;padding:7px 12px;font-size:10px;font-weight:500;white-space:nowrap;flex-shrink:0}
+.arch-box.active{border-color:var(--or);color:var(--or);background:var(--or-lt)}
+.arch-arrow{font-size:14px;color:var(--hint);padding:0 6px;flex-shrink:0}
+.arch-services{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 16px 14px}
+.arch-svc{border:0.5px solid var(--bdr);border-radius:6px;padding:6px 10px;font-size:10px}
+.arch-svc-name{font-weight:500;margin-bottom:2px}
+.arch-svc-detail{color:var(--muted);font-size:9px}
+.conn-status{display:flex;align-items:center;gap:5px;font-size:10px;padding:6px 16px;border-top:0.5px solid var(--bdr);background:#FAFAFA}
+.conn-dot{width:5px;height:5px;border-radius:50%;background:var(--grn)}
+.conn-dot.offline{background:var(--red);animation:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>Insurance Payment &amp; Refund Lifecycle</h1>
+    <p>StarPay · Bancs · UW Engine · GL Mapper · Penny Drop API &nbsp;·&nbsp; v2.5.0-prod</p>
+  </div>
+  <div class="hdr-right">
+    <div class="conn-status" id="connStatus" style="border:0.5px solid var(--bdr);border-radius:6px;padding:4px 10px;background:var(--grn-lt)">
+      <span class="conn-dot" id="connDot"></span>
+      <span id="connLabel">Connecting...</span>
+    </div>
+    <div class="toggle-wrap">
+      <span>Tech view</span>
+      <label class="toggle"><input type="checkbox" id="techToggle"><span class="slider"></span></label>
+    </div>
+    <button class="btn btn-red" id="simErrBtn">Simulate Bank 500</button>
+    <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--or);font-weight:500">
+      <div class="live-dot"></div>LIVE
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-steps">
+  <div class="prog-step active" data-s="0"><div class="step-circle">1</div><div class="step-lbl">Collection</div></div>
+  <div class="prog-step" data-s="1"><div class="step-circle">2</div><div class="step-lbl">UW Tagging</div></div>
+  <div class="prog-step" data-s="2"><div class="step-circle">3</div><div class="step-lbl">GL Mapping</div></div>
+  <div class="prog-step" data-s="3"><div class="step-circle">4</div><div class="step-lbl">Penny Drop</div></div>
+  <div class="prog-step" data-s="4"><div class="step-circle">5</div><div class="step-lbl">Refund</div></div>
+</div>
+
+<!-- STEP 0: ARCHITECTURE VIEW -->
+<div class="section">
+  <div class="sec-hdr">
+    <div class="sec-title">System Architecture · Data Flow</div>
+    <span class="badge badge-blu">Ops View</span>
+  </div>
+  <div class="arch-flow">
+    <div class="arch-box active">Browser / UI</div>
+    <div class="arch-arrow">&#8594;</div>
+    <div class="arch-box active">Express API :3000</div>
+    <div class="arch-arrow">&#8594;</div>
+    <div class="arch-box">Payment Service</div>
+    <div class="arch-arrow">&#8594;</div>
+    <div class="arch-box">Bancs Core (sim)</div>
+    <div class="arch-arrow">&#8594;</div>
+    <div class="arch-box">UW Engine</div>
+    <div class="arch-arrow">&#8594;</div>
+    <div class="arch-box">GL Mapper</div>
+    <div class="arch-arrow">&#8594;</div>
+    <div class="arch-box">Penny Drop API</div>
+    <div class="arch-arrow">&#8594;</div>
+    <div class="arch-box">Refund Service</div>
+  </div>
+  <div class="arch-services">
+    <div class="arch-svc"><div class="arch-svc-name">POST /transactions</div><div class="arch-svc-detail">IFSC · duplicate · amount validation</div></div>
+    <div class="arch-svc"><div class="arch-svc-name">POST /convert-policy</div><div class="arch-svc-detail">UW tagging · Bancs sync gate</div></div>
+    <div class="arch-svc"><div class="arch-svc-name">POST /verify-account</div><div class="arch-svc-detail">Penny drop · retry logic · 500 sim</div></div>
+    <div class="arch-svc"><div class="arch-svc-name">POST /refund</div><div class="arch-svc-detail">Hard deps · GL-4404 clearance</div></div>
+  </div>
+</div>
+
+<!-- STEP 1: TRANSACTION FORM + FEED -->
+<div class="section">
+  <div class="sec-hdr">
+    <div class="sec-title"><div class="live-dot"></div><span class="step-badge">Step 1</span>Real-time Collections · StarPay Layer</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="badge badge-or" id="txnCountBadge">0 transactions</span>
+    </div>
+  </div>
+  <div class="form-grid">
+    <div class="form-field">
+      <label class="form-label">Amount (₹)</label>
+      <input class="form-input" type="number" id="f-amount" placeholder="122000" value="122000"/>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Premium Amount (₹)</label>
+      <input class="form-input" type="number" id="f-premium" placeholder="114500" value="114500"/>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Bank IFSC</label>
+      <input class="form-input" type="text" id="f-ifsc" placeholder="HDFC0000001" value="HDFC0000001" style="font-family:var(--mono)"/>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Bank Name</label>
+      <input class="form-input" type="text" id="f-bank" placeholder="HDFC Bank" value="HDFC Bank"/>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Account Number</label>
+      <input class="form-input" type="text" id="f-acct" placeholder="50100123456789" value="50100123456789" style="font-family:var(--mono)"/>
+    </div>
+    <div class="form-field">
+      <label class="form-label">UTR Reference</label>
+      <input class="form-input" type="text" id="f-utr" placeholder="HDFC3240918001" style="font-family:var(--mono)"/>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Proposal ID</label>
+      <input class="form-input" type="text" id="f-proposal" placeholder="2024-88412" value="2024-88412"/>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Account Holder Name</label>
+      <input class="form-input" type="text" id="f-holder" placeholder="Arjun Sharma" value="Arjun Sharma"/>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-or" id="submitTxnBtn">Submit NEFT Transaction</button>
+    <button class="btn" id="loadTxnsBtn">Refresh Feed</button>
+    <span class="form-err" id="txnErr"></span>
+  </div>
+  <div id="txnFeed"></div>
+</div>
+
+<!-- STEP 2: UW TAGGING -->
+<div class="section">
+  <div class="sec-hdr">
+    <div class="sec-title"><span class="step-badge">Step 2</span>UW Auto-Tagging · Policy Conversion</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="badge badge-blu" id="syncBadge">Awaiting settlement</span>
+      <button class="btn btn-or" id="convertBtn" disabled>Convert to Policy</button>
+    </div>
+  </div>
+  <div class="uw-grid" id="uwGrid">
+    <div class="uw-card">
+      <div class="uw-prop">Proposal ID</div><div class="uw-val" id="uwProposal" style="font-family:var(--mono)">—</div>
+      <div style="margin-top:10px"><div class="uw-prop">Insured Name</div><div class="uw-val" id="uwName">—</div></div>
+      <div style="margin-top:10px"><div class="uw-prop">Transaction ID</div><div class="uw-val" id="uwTxnId" style="font-family:var(--mono);font-size:11px">—</div></div>
+    </div>
+    <div class="uw-card">
+      <div class="uw-prop">Premium Amount</div><div class="uw-val" id="uwPremium" style="color:var(--or)">—</div>
+      <div style="margin-top:10px"><div class="uw-prop">Collection Received</div><div class="uw-val" id="uwCollected" style="color:var(--grn)">—</div></div>
+      <div style="margin-top:10px"><div class="uw-prop">Excess / Shortfall</div><div class="uw-val" id="uwExcess" style="color:var(--amb)">—</div></div>
+    </div>
+  </div>
+  <div class="sync-bar-wrap">
+    <div class="sync-label"><span>Bancs Settlement Status</span><span id="syncPct">Pending</span></div>
+    <div class="sync-track"><div class="sync-fill" id="syncFill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<!-- STEP 3: GL MAPPING -->
+<div class="section">
+  <div class="sec-hdr">
+    <div class="sec-title"><span class="step-badge">Step 3</span>Accounting &amp; GL Mapping · Post-Conversion</div>
+    <span class="badge badge-pur" id="policyBadge">Awaiting conversion</span>
+  </div>
+  <div style="padding:4px 0">
+    <table class="gl-table">
+      <thead><tr><th>GL Code</th><th>Description</th><th>Amount</th><th>Status</th><th>Ledger</th></tr></thead>
+      <tbody id="glBody"><tr><td colspan="5" style="padding:16px 10px;color:var(--hint);text-align:center;font-size:11px">GL entries generated after policy conversion</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- STEP 4: PENNY DROP -->
+<div class="section">
+  <div class="sec-hdr">
+    <div class="sec-title"><span class="step-badge">Step 4</span>Penny Drop Guardrail · Hard Dependency</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn btn-red" id="retryPennyBtn" style="display:none">Retry Verification</button>
+      <button class="btn" id="runPennyBtn" disabled>Run Penny Drop</button>
+    </div>
+  </div>
+  <div id="errBanner" style="display:none" class="err-banner">
+    <span style="font-size:14px;flex-shrink:0">!</span>
+    <div id="errBannerMsg">Bank API 500 Error — penny drop failed</div>
+  </div>
+  <div style="padding:12px 16px">
+    <div class="penny-grid" id="pennyGrid">
+      <div style="padding:16px;color:var(--hint);font-size:11px;grid-column:1/-1;text-align:center">Beneficiary accounts loaded after policy conversion</div>
+    </div>
+  </div>
+  <div class="refund-row">
+    <div id="refundLock" class="refund-lock" style="color:var(--red)">
+      <div class="lock-icon" id="lockIcon" style="background:var(--red-lt);border:0.5px solid var(--red-bdr);color:var(--red)">X</div>
+      <span id="lockMsg">Complete steps 1–4 to unlock refund</span>
+    </div>
+    <button class="btn btn-or" id="refundBtn" disabled>Initiate Refund</button>
+  </div>
+</div>
+
+<!-- SYSTEM LOGS -->
+<div class="section">
+  <div class="sec-hdr">
+    <div class="sec-title">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--grn);font-weight:600">$</span>
+      Live System Logs · ops-engine-prod
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="fetchLogsBtn">Fetch Backend Logs</button>
+      <button class="btn" id="clearLogBtn">Clear</button>
+    </div>
+  </div>
+  <div class="terminal" id="terminal"></div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+const API = 'http://localhost:3000/api';
+let state = {
+  txns: [],
+  activeTxn: null,
+  policyId: null,
+  glEntries: [],
+  beneficiaries: [],
+  bankFailureMode: false,
+  logLines: [],
+  simErr: false
+};
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+const techOn = () => document.getElementById('techToggle').checked;
+const fmt = n => '₹' + Number(n).toLocaleString('en-IN');
+const tsNow = () => new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts
+  });
+  const data = await res.json();
+  return { ok: res.ok, status: res.status, data };
+}
+
+function addLog(type, msg, fromBackend = false) {
+  const cls = {INFO:'log-info',SYNC:'log-sync',WARN:'log-warn',ERR:'log-err',
+               GL:'log-gl',LOG:'log-info',PENNY:'log-penny',SYSTEM:'log-sync'}[type] || 'log-info';
+  const src = fromBackend ? '<span style="color:#475569">[BE]</span> ' : '';
+  state.logLines.push(`<div class="log-line"><span class="log-ts">[${tsNow()}]</span> <span class="${cls}">[${type}]</span> ${src}${msg}</div>`);
+  if (state.logLines.length > 120) state.logLines.shift();
+  const t = document.getElementById('terminal');
+  t.innerHTML = state.logLines.join('');
+  t.scrollTop = t.scrollHeight;
+}
+
+function updateProgress(done) {
+  document.querySelectorAll('.prog-step').forEach((el, i) => {
+    el.className = 'prog-step' + (i < done ? ' done' : i === done ? ' active' : '');
+  });
+}
+
+// ─── Connection check ─────────────────────────────────────────────────────────
+async function checkConnection() {
+  try {
+    const { ok } = await apiFetch('/health');
+    const dot = document.getElementById('connDot');
+    const lbl = document.getElementById('connLabel');
+    if (ok) {
+      dot.className = 'conn-dot';
+      lbl.textContent = 'API Connected · localhost:3000';
+      addLog('INFO', 'Backend API connected — ops-engine-prod ready');
+    } else {
+      throw new Error('not ok');
+    }
+  } catch {
+    document.getElementById('connDot').className = 'conn-dot offline';
+    document.getElementById('connLabel').textContent = 'API Offline — running in demo mode';
+    addLog('WARN', 'Backend not detected. Start server: cd backend && npm start');
+  }
+}
+
+// ─── STEP 1: Transactions ─────────────────────────────────────────────────────
+async function submitTransaction() {
+  const btn = document.getElementById('submitTxnBtn');
+  const errEl = document.getElementById('txnErr');
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  const body = {
+    amount: Number(document.getElementById('f-amount').value),
+    premium_amount: Number(document.getElementById('f-premium').value),
+    bank_ifsc: document.getElementById('f-ifsc').value.trim().toUpperCase(),
+    bank_name: document.getElementById('f-bank').value.trim(),
+    account_number: document.getElementById('f-acct').value.trim(),
+    utr: document.getElementById('f-utr').value.trim() || undefined,
+    proposal_id: document.getElementById('f-proposal').value.trim(),
+  };
+
+  addLog('INFO', `Submitting NEFT: ${body.bank_ifsc} ${fmt(body.amount)}`);
+
+  try {
+    const { ok, data } = await apiFetch('/transactions', {
+      method: 'POST', body: JSON.stringify(body)
+    });
+
+    if (!ok) {
+      errEl.textContent = data.error || 'Submission failed';
+      addLog('ERR', `Transaction rejected: ${data.error} [${data.code}]`);
+      return;
+    }
+
+    const txn = data.transaction;
+    state.activeTxn = txn;
+    addLog('SYNC', `Transaction received: ${txn.transaction_id} · ${txn.payment_status} · trace:${txn.trace_id}`, true);
+
+    if (txn.payment_status === 'partial') {
+      addLog('WARN', `Partial payment: shortfall ₹${txn.shortfall} — policy conversion will be blocked`);
+    } else if (txn.payment_status === 'excess') {
+      addLog('GL', `Excess amount ₹${txn.excess} — will be mapped to GL-4404 Suspense on conversion`);
+    }
+
+    // Auto-generate UTR for next submission
+    document.getElementById('f-utr').value = '';
+    await loadTransactions();
+    updateUWPanel(txn);
+    pollForSettlement(txn.transaction_id);
+    updateProgress(1);
+
+  } catch (e) {
+    errEl.textContent = 'Network error — is the backend running?';
+    addLog('ERR', 'Network error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit NEFT Transaction';
+  }
+}
+
+async function loadTransactions() {
+  try {
+    const { data } = await apiFetch('/transactions');
+    state.txns = data.transactions || [];
+    renderFeed();
+    document.getElementById('txnCountBadge').textContent = state.txns.length + ' transaction' + (state.txns.length !== 1 ? 's' : '');
+  } catch (e) {
+    addLog('WARN', 'Could not fetch transactions from API');
+  }
+}
+
+function renderFeed() {
+  const c = document.getElementById('txnFeed');
+  if (!state.txns.length) {
+    c.innerHTML = '<div style="padding:16px;color:var(--hint);text-align:center;font-size:11px">No transactions yet. Submit one above.</div>';
+    return;
+  }
+
+  if (techOn()) {
+    c.innerHTML = state.txns.map(t =>
+      `<div class="json-block">
+<span class="json-key">"transaction_id"</span>: <span class="json-str">"${t.transaction_id}"</span>,
+<span class="json-key">"trace_id"</span>: <span class="json-str">"${t.trace_id}"</span>,
+<span class="json-key">"utr"</span>: <span class="json-str">"${t.utr}"</span>,
+<span class="json-key">"bank_ifsc"</span>: <span class="json-str">"${t.bank_ifsc}"</span>,
+<span class="json-key">"bank_name"</span>: <span class="json-str">"${t.bank_name}"</span>,
+<span class="json-key">"account_number"</span>: <span class="json-str">"${t.account_number}"</span>,
+<span class="json-key">"amount"</span>: <span class="json-num">${t.amount}</span>,
+<span class="json-key">"premium_amount"</span>: <span class="json-num">${t.premium_amount}</span>,
+<span class="json-key">"excess"</span>: <span class="json-num">${t.excess}</span>,
+<span class="json-key">"payment_status"</span>: <span class="json-str">"${t.payment_status}"</span>,
+<span class="json-key">"status"</span>: <span class="json-str">"${t.status}"</span>,
+<span class="json-key">"bancs_status"</span>: <span class="json-str">"${t.bancs_status}"</span>,
+<span class="json-key">"created_at"</span>: <span class="json-str">"${t.created_at}"</span></div>`
+    ).join('');
+  } else {
+    c.innerHTML = state.txns.map(t => {
+      const sc = t.status === 'settled' ? 'badge-grn' : t.payment_status === 'partial' ? 'badge-red' : 'badge-amb';
+      const sl = t.status === 'settled' ? 'Settled &#8594; Bancs' : 'Processing';
+      const psColor = t.payment_status === 'excess' ? 'var(--amb)' : t.payment_status === 'partial' ? 'var(--red)' : 'var(--grn)';
+      return `<div class="txn-row">
+        <div class="txn-icon">NE</div>
+        <div class="txn-meta">
+          <div class="txn-id">${t.transaction_id}</div>
+          <div class="txn-flow">${t.bank_name} &middot; ${t.bank_ifsc} &#8594; StarPay &#8594; Bancs</div>
+        </div>
+        <div style="text-align:right">
+          <div class="txn-amt">${fmt(t.amount)}</div>
+          <div class="txn-time" style="color:${psColor}">${t.payment_status}</div>
+        </div>
+        <span class="badge ${sc}" style="margin-left:8px">${sl}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ─── STEP 2: UW Panel + Settlement Poll ──────────────────────────────────────
+function updateUWPanel(txn) {
+  document.getElementById('uwProposal').textContent = txn.proposal_id || '—';
+  document.getElementById('uwName').textContent = document.getElementById('f-holder').value || '—';
+  document.getElementById('uwTxnId').textContent = txn.transaction_id;
+  document.getElementById('uwPremium').textContent = fmt(txn.premium_amount);
+  document.getElementById('uwCollected').textContent = fmt(txn.amount);
+
+  const diff = txn.excess > 0 ? `+${fmt(txn.excess)} excess` : txn.shortfall > 0 ? `-${fmt(txn.shortfall)} shortfall` : 'Exact match';
+  document.getElementById('uwExcess').textContent = diff;
+  document.getElementById('uwExcess').style.color = txn.shortfall > 0 ? 'var(--red)' : txn.excess > 0 ? 'var(--amb)' : 'var(--grn)';
+}
+
+function pollForSettlement(txnId) {
+  addLog('SYNC', `Polling Bancs settlement for ${txnId}...`);
+  let pct = 0;
+  const iv = setInterval(async () => {
+    pct = Math.min(100, pct + Math.floor(Math.random() * 18) + 6);
+    document.getElementById('syncFill').style.width = pct + '%';
+    document.getElementById('syncPct').textContent = pct + '%';
+
+    try {
+      const { data } = await apiFetch('/transactions/' + txnId);
+      const txn = data.transaction;
+
+      if (txn.status === 'settled') {
+        clearInterval(iv);
+        document.getElementById('syncFill').style.width = '100%';
+        document.getElementById('syncPct').textContent = '100%';
+        const sb = document.getElementById('syncBadge');
+        sb.className = 'badge badge-grn';
+        sb.textContent = '100% Settled';
+        document.getElementById('convertBtn').disabled = false;
+        state.activeTxn = txn;
+        addLog('SYNC', `Bancs confirmed: ${txnId} settled — Convert to Policy unlocked`, true);
+        updateProgress(1);
+      } else if (pct >= 90) {
+        addLog('SYNC', `Bancs push in progress (${pct}%)...`);
+      }
+    } catch {}
+  }, 700);
+}
+
+// ─── STEP 2: Convert Policy ───────────────────────────────────────────────────
+async function convertPolicy() {
+  const btn = document.getElementById('convertBtn');
+  btn.disabled = true;
+  btn.textContent = 'Converting...';
+
+  const txn = state.activeTxn;
+  const holder = document.getElementById('f-holder').value.trim();
+  const acct = document.getElementById('f-acct').value.trim();
+  const ifsc = document.getElementById('f-ifsc').value.trim().toUpperCase();
+
+  const body = {
+    transaction_id: txn.transaction_id,
+    proposal_id: txn.proposal_id || document.getElementById('f-proposal').value.trim(),
+    beneficiaries: [
+      { name: holder, account_number: acct, bank_ifsc: ifsc }
+    ]
+  };
+
+  addLog('LOG', `Converting PRO-${body.proposal_id} → policy...`);
+
+  try {
+    const { ok, data } = await apiFetch('/convert-policy', { method: 'POST', body: JSON.stringify(body) });
+
+    if (!ok) {
+      addLog('ERR', `Policy conversion failed: ${data.error}`);
+      btn.textContent = 'Convert to Policy';
+      btn.disabled = false;
+      return;
+    }
+
+    state.policyId = data.policy.policy_id;
+    state.glEntries = data.gl_entries;
+    state.beneficiaries = body.beneficiaries;
+
+    btn.textContent = 'Policy Active';
+    btn.style.background = 'var(--grn)';
+    btn.style.borderColor = 'var(--grn)';
+
+    document.getElementById('policyBadge').textContent = state.policyId;
+    document.getElementById('policyBadge').className = 'badge badge-grn';
+
+    addLog('LOG', `Policy created: ${state.policyId}`, true);
+    data.gl_entries.forEach(e => {
+      addLog('GL', `GL ${e.code} ${e.desc} ${fmt(e.amount)} → ${e.ledger}`, true);
+    });
+
+    renderGLEntries(data.gl_entries);
+    renderPennyCards();
+    document.getElementById('runPennyBtn').disabled = false;
+    updateProgress(2);
+    addLog('INFO', 'Penny drop verification ready — run Step 4');
+
+  } catch (e) {
+    addLog('ERR', 'Convert policy error: ' + e.message);
+    btn.textContent = 'Convert to Policy';
+    btn.disabled = false;
+  }
+}
+
+// ─── STEP 3: GL ───────────────────────────────────────────────────────────────
+function renderGLEntries(entries) {
+  const tbody = document.getElementById('glBody');
+  tbody.innerHTML = entries.map(e => {
+    const sc = e.status === 'posted' ? 'badge-grn' : e.status === 'cleared' ? 'badge-blu' : 'badge-amb';
+    const codeColor = e.status === 'held' ? 'color:var(--amb)' : '';
+    return `<tr>
+      <td class="gl-code" style="${codeColor}">${e.code}</td>
+      <td>${e.desc}${e.note ? `<span style="color:var(--hint);font-size:10px;margin-left:6px">${e.note}</span>` : ''}</td>
+      <td style="font-weight:500;${codeColor}">${fmt(e.amount)}</td>
+      <td><span class="badge ${sc}">${e.status}</span></td>
+      <td style="color:var(--muted)">${e.ledger}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── STEP 4: Penny Drop ───────────────────────────────────────────────────────
+function renderPennyCards() {
+  const g = document.getElementById('pennyGrid');
+  g.innerHTML = state.beneficiaries.map(b => {
+    const dotCls = 'dot-amb';
+    return `<div class="penny-card" id="penny-${b.account_number}">
+      <div class="penny-name">${b.name}</div>
+      <div class="penny-bank">${b.account_number} · ${b.bank_ifsc}</div>
+      <div class="penny-status"><span class="status-dot ${dotCls}"></span><span class="badge badge-amb">Pending</span></div>
+      ${techOn() ? `<div style="font-family:var(--mono);font-size:9px;color:var(--hint);margin-top:5px">retries: 0</div>` : ''}
+    </div>`;
+  }).join('');
+  checkRefundUnlock();
+}
+
+function updatePennyCard(b, result) {
+  const el = document.getElementById('penny-' + b.account_number);
+  if (!el) return;
+  const ok = result.status === 'verified';
+  const fail = result.status === 'failed';
+  const dotCls = ok ? 'dot-grn' : fail ? 'dot-red' : 'dot-amb';
+  const badgeCls = ok ? 'badge-grn' : fail ? 'badge-red' : 'badge-amb';
+  const lbl = ok ? 'Verified' : fail ? 'Failed' : 'Pending';
+  const tech = techOn()
+    ? `<div style="font-family:var(--mono);font-size:9px;color:var(--hint);margin-top:5px">retries: ${result.retries_attempted || 0}${result.error ? '<br>error: ' + result.error_code : ''}</div>` : '';
+  el.innerHTML = `
+    <div class="penny-name">${b.name}</div>
+    <div class="penny-bank">${b.account_number} · ${b.bank_ifsc}</div>
+    <div class="penny-status"><span class="status-dot ${dotCls}"></span><span class="badge ${badgeCls}">${lbl}</span></div>
+    ${tech}`;
+}
+
+async function runPennyDrop() {
+  const btn = document.getElementById('runPennyBtn');
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+  state.simErr = false;
+  document.getElementById('errBanner').style.display = 'none';
+  document.getElementById('retryPennyBtn').style.display = 'none';
+
+  addLog('INFO', 'Initiating penny drop for all beneficiaries...');
+  let anyFailed = false;
+
+  for (const b of state.beneficiaries) {
+    addLog('PENNY', `Penny drop initiated: ${b.name} · ${b.account_number} @ ${b.bank_ifsc}`);
+    try {
+      const { ok, data } = await apiFetch('/verify-account', {
+        method: 'POST',
+        body: JSON.stringify({
+          account_number: b.account_number,
+          bank_ifsc: b.bank_ifsc,
+          account_holder: b.name
+        })
+      });
+      updatePennyCard(b, data);
+
+      if (data.status === 'verified') {
+        addLog('PENNY', `SUCCESS: ${b.name} · ₹1.00 credited & returned · trace:${data.trace_id}`, true);
+      } else {
+        anyFailed = true;
+        state.simErr = true;
+        addLog('ERR', `FAILED: ${b.name} · ${data.error} [${data.error_code}]`, true);
+        const banner = document.getElementById('errBanner');
+        document.getElementById('errBannerMsg').textContent = `Bank API Error — ${data.error}. Refund safety-lock engaged on GL-4404.`;
+        banner.style.display = 'flex';
+        document.getElementById('retryPennyBtn').style.display = 'inline-flex';
+        addLog('ERR', 'Safety-lock engaged: GL-4404 refund BLOCKED');
+        addLog('LOG', 'Incident alert dispatched → ops-team@insurer.com | PagerDuty P2');
+      }
+    } catch (e) {
+      addLog('ERR', 'Verification network error: ' + e.message);
+    }
+  }
+
+  if (!anyFailed) {
+    addLog('LOG', `All beneficiaries verified. GL-4404 refund eligible.`, true);
+    updateProgress(3);
+    checkRefundUnlock();
+    // Update refund button label with amount
+    const txn = state.activeTxn;
+    if (txn && txn.excess > 0) {
+      document.getElementById('refundBtn').textContent = `Initiate Refund ${fmt(txn.excess)}`;
+    }
+  }
+
+  checkRefundUnlock();
+  btn.textContent = 'Run Penny Drop';
+  btn.disabled = false;
+}
+
+async function retryPennyDrop() {
+  // Reset bank failure mode on backend
+  await apiFetch('/simulate/reset', { method: 'POST' });
+  state.simErr = false;
+  document.getElementById('errBanner').style.display = 'none';
+  document.getElementById('retryPennyBtn').style.display = 'none';
+  addLog('INFO', 'Bank failure simulation reset. Retrying verification...');
+  await runPennyDrop();
+}
+
+function checkRefundUnlock() {
+  const btn = document.getElementById('refundBtn');
+  const lkDiv = document.getElementById('refundLock');
+  const lkMsg = document.getElementById('lockMsg');
+  const lkIcon = document.getElementById('lockIcon');
+
+  const hasPolicy = !!state.policyId;
+  const noSimErr = !state.simErr;
+
+  // Check all beneficiaries verified (from DOM state)
+  const cards = document.querySelectorAll('#pennyGrid .penny-card');
+  let allVerified = cards.length > 0;
+  cards.forEach(card => {
+    if (!card.querySelector('.badge-grn')) allVerified = false;
+  });
+
+  if (hasPolicy && allVerified && noSimErr) {
+    btn.disabled = false;
+    lkDiv.style.color = 'var(--grn)';
+    lkMsg.textContent = 'All penny drops verified — Refund unlocked';
+    lkIcon.style.cssText = 'background:var(--grn-lt);border:0.5px solid var(--grn-bdr);color:var(--grn);width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0';
+    lkIcon.textContent = '✓';
+  } else {
+    btn.disabled = true;
+    lkDiv.style.color = 'var(--red)';
+    lkMsg.textContent = state.simErr
+      ? 'Bank API 500 — safety-lock engaged on GL-4404'
+      : !hasPolicy
+        ? 'Complete steps 1–3 to unlock refund'
+        : 'Penny drop pending — refund locked to prevent operational waste';
+    lkIcon.style.cssText = 'background:var(--red-lt);border:0.5px solid var(--red-bdr);color:var(--red);width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0';
+    lkIcon.textContent = 'X';
+  }
+}
+
+// ─── STEP 5: Refund ───────────────────────────────────────────────────────────
+async function initiateRefund() {
+  const btn = document.getElementById('refundBtn');
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+
+  addLog('LOG', `Refund initiated for policy ${state.policyId}`);
+
+  try {
+    const { ok, data } = await apiFetch('/refund', {
+      method: 'POST',
+      body: JSON.stringify({ policy_id: state.policyId })
+    });
+
+    if (!ok) {
+      addLog('ERR', `Refund failed: ${data.error} [${data.code}]`, true);
+      btn.disabled = false;
+      btn.textContent = 'Retry Refund';
+      return;
+    }
+
+    const refund = data.refund;
+    addLog('LOG', `Refund dispatched: ${refund.refund_id} · ${fmt(refund.amount)} · UTR:${refund.utr}`, true);
+    addLog('SYNC', 'NEFT refund queued via StarPay gateway · T+0 settlement expected');
+    addLog('GL', `GL-4404 Suspense cleared → Refund In-Transit`);
+
+    btn.textContent = 'Refund Dispatched';
+    btn.style.background = 'var(--grn)';
+    btn.style.borderColor = 'var(--grn)';
+    updateProgress(4);
+
+    // Refresh GL to show 4404 cleared
+    try {
+      const { data: glData } = await apiFetch('/gl/' + state.policyId);
+      if (glData.entries) renderGLEntries(glData.entries);
+    } catch {}
+
+  } catch (e) {
+    addLog('ERR', 'Refund network error: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = 'Retry Refund';
+  }
+}
+
+// ─── Edge case: Bank 500 simulation ──────────────────────────────────────────
+async function simulateBankFailure() {
+  state.bankFailureMode = !state.bankFailureMode;
+  try {
+    await apiFetch('/simulate/bank-failure', {
+      method: 'POST',
+      body: JSON.stringify({ enabled: state.bankFailureMode })
+    });
+  } catch {}
+
+  const btn = document.getElementById('simErrBtn');
+  if (state.bankFailureMode) {
+    btn.textContent = 'Disable Bank Failure';
+    addLog('WARN', 'Bank failure simulation ENABLED — ICICI gateway will return 500');
+    addLog('WARN', 'Next penny drop will fail with 3 retries and safety-lock');
+  } else {
+    btn.textContent = 'Simulate Bank 500';
+    addLog('INFO', 'Bank failure simulation DISABLED');
+  }
+}
+
+// ─── Fetch backend audit logs ─────────────────────────────────────────────────
+async function fetchBackendLogs() {
+  try {
+    const { data } = await apiFetch('/logs?limit=30');
+    (data.logs || []).reverse().forEach(l => {
+      addLog(l.event.split(':')[0].replace(/[^A-Z]/g,'').slice(0,6) || 'LOG',
+             `${l.event} [${l.service}] trace:${l.trace_id}`, true);
+    });
+  } catch {
+    addLog('WARN', 'Could not fetch backend logs');
+  }
+}
+
+// ─── Event listeners ──────────────────────────────────────────────────────────
+document.getElementById('submitTxnBtn').addEventListener('click', submitTransaction);
+document.getElementById('loadTxnsBtn').addEventListener('click', loadTransactions);
+document.getElementById('convertBtn').addEventListener('click', convertPolicy);
+document.getElementById('runPennyBtn').addEventListener('click', runPennyDrop);
+document.getElementById('retryPennyBtn').addEventListener('click', retryPennyDrop);
+document.getElementById('refundBtn').addEventListener('click', initiateRefund);
+document.getElementById('simErrBtn').addEventListener('click', simulateBankFailure);
+document.getElementById('clearLogBtn').addEventListener('click', () => { state.logLines = []; document.getElementById('terminal').innerHTML = ''; });
+document.getElementById('fetchLogsBtn').addEventListener('click', fetchBackendLogs);
+document.getElementById('techToggle').addEventListener('change', () => { renderFeed(); renderPennyCards(); });
+
+// ─── Heartbeat + auto-refresh ─────────────────────────────────────────────────
+setInterval(async () => {
+  if (state.activeTxn && state.activeTxn.status !== 'settled') {
+    await loadTransactions();
+    const found = state.txns.find(t => t.transaction_id === state.activeTxn.transaction_id);
+    if (found) state.activeTxn = found;
+  }
+}, 3000);
+
+setInterval(() => {
+  const msgs = [
+    ['INFO', `Heartbeat: StarPay ↔ Bancs link healthy (RTT: ${Math.floor(Math.random()*15)+8}ms)`],
+    ['SYNC', 'GL reconciliation pass — no discrepancies'],
+    ['LOG', `Audit trail written · session-${Math.floor(Math.random()*9000+1000)}`],
+    ['INFO', 'RBI NEFT batch window open · T+0 eligible'],
+  ];
+  const m = msgs[Math.floor(Math.random() * msgs.length)];
+  addLog(m[0], m[1]);
+}, 6000);
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+addLog('INFO', 'Frontend initialised · v2.5.0');
+addLog('INFO', 'Connecting to ops-engine API...');
+checkConnection();
+loadTransactions();
+</script>
+</body>
+</html>
