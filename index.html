@@ -158,22 +158,22 @@ body{font-family:var(--sans);font-size:13px;color:var(--txt);background:var(--bg
     <div class="sec-title">System Architecture · Data Flow</div>
     <span class="badge badge-blu">Ops View</span>
   </div>
-  <div class="arch-flow">
-    <div class="arch-box active">Browser / UI</div>
+  <div class="arch-flow" id="archFlow">
+    <div class="arch-box active" id="box-0">Browser / UI</div>
     <div class="arch-arrow">&#8594;</div>
-    <div class="arch-box active">Mock API Engine</div>
+    <div class="arch-box" id="box-1">Mock API Engine</div>
     <div class="arch-arrow">&#8594;</div>
-    <div class="arch-box">Payment Service</div>
+    <div class="arch-box" id="box-2">Payment Service</div>
     <div class="arch-arrow">&#8594;</div>
-    <div class="arch-box">Bancs Core (sim)</div>
+    <div class="arch-box" id="box-3">Bancs Core (sim)</div>
     <div class="arch-arrow">&#8594;</div>
-    <div class="arch-box">UW Engine</div>
+    <div class="arch-box" id="box-4">UW Engine</div>
     <div class="arch-arrow">&#8594;</div>
-    <div class="arch-box">GL Mapper</div>
+    <div class="arch-box" id="box-5">GL Mapper</div>
     <div class="arch-arrow">&#8594;</div>
-    <div class="arch-box">Penny Drop API</div>
+    <div class="arch-box" id="box-6">Penny Drop API</div>
     <div class="arch-arrow">&#8594;</div>
-    <div class="arch-box">Refund Service</div>
+    <div class="arch-box" id="box-7">Refund Service</div>
   </div>
 </div>
 
@@ -279,23 +279,6 @@ const state = {
   logLines: []
 };
 
-// --- MOCK INTERCEPTOR ---
-window.fetch = async (url, options) => {
-  const body = options?.body ? JSON.parse(options.body) : {};
-  if (url.includes('transactions')) {
-    const amt = Number(body.amount);
-    const pre = Number(body.premium_amount);
-    const txn = { id: "NEFT" + Date.now(), amount: amt, premium: pre, excess: amt - pre, status: "pending" };
-    state.txns.push(txn);
-    return { ok: true, json: async () => ({ transaction: txn, transactions: state.txns }) };
-  }
-  if (url.includes('verify-account')) {
-    if (state.simErr) return { ok: false, json: async () => ({ status: "failed" }) };
-    return { ok: true, json: async () => ({ status: "verified" }) };
-  }
-  return { ok: true, json: async () => ({ status: "success" }) };
-};
-
 // --- CORE FUNCTIONS ---
 const fmt = n => '₹' + Number(n).toLocaleString('en-IN');
 const addLog = (type, msg) => {
@@ -310,31 +293,37 @@ const updateProgress = (step) => {
   document.querySelectorAll('.prog-step').forEach((el, i) => {
     el.className = 'prog-step' + (i < step ? ' done' : i === step ? ' active' : '');
   });
-};
-
-// STEP 1: SUBMIT
-document.getElementById('submitTxnBtn').onclick = async () => {
-  const res = await fetch('transactions', { method: 'POST', body: JSON.stringify({ 
-    amount: document.getElementById('f-amount').value, 
-    premium_amount: document.getElementById('f-premium').value 
-  })});
-  const data = await res.json();
-  state.activeTxn = data.transaction;
-  addLog('INFO', `NEFT Received: ${fmt(state.activeTxn.amount)}`);
-  renderFeed();
-  startSettlement();
+  // Update Architecture Box
+  document.querySelectorAll('.arch-box').forEach(box => box.classList.remove('active'));
+  const boxId = step === 0 ? 'box-0' : step === 1 ? 'box-2' : step === 2 ? 'box-4' : step === 3 ? 'box-6' : 'box-7';
+  document.getElementById(boxId).classList.add('active');
 };
 
 const renderFeed = () => {
   const tech = document.getElementById('techToggle').checked;
   const feed = document.getElementById('txnFeed');
+  if (state.txns.length === 0) {
+      feed.innerHTML = '<div style="padding:16px;color:var(--hint);text-align:center">No transactions.</div>';
+      return;
+  }
   feed.innerHTML = state.txns.map(t => tech 
-    ? `<div class="json-block">{"id":"${t.id}", "amt":${t.amount}, "excess":${t.excess}}</div>`
-    : `<div class="txn-row"><div class="txn-id">${t.id}</div><div class="txn-amt">${fmt(t.amount)}</div></div>`).join('');
+    ? `<div class="json-block">{"id":"${t.id}", "amt":${t.amount}, "excess":${t.excess}, "status":"${t.status}"}</div>`
+    : `<div class="txn-row"><div class="txn-meta"><div class="txn-id">${t.id}</div></div><div class="txn-amt">${fmt(t.amount)}</div><span class="badge badge-grn" style="margin-left:10px">Success</span></div>`).join('');
 };
 
-// STEP 2: SETTLEMENT
-const startSettlement = () => {
+// STEP 1: SUBMIT
+document.getElementById('submitTxnBtn').onclick = () => {
+  const amt = Number(document.getElementById('f-amount').value);
+  const pre = Number(document.getElementById('f-premium').value);
+  const txn = { id: "NEFT" + Math.floor(Math.random()*1000000), amount: amt, premium: pre, excess: amt - pre, status: "pushed" };
+  state.txns.push(txn);
+  state.activeTxn = txn;
+  
+  addLog('INFO', `NEFT Captured: ${fmt(amt)}`);
+  renderFeed();
+  document.getElementById('txnCountBadge').textContent = state.txns.length + " transactions";
+  
+  // Start Settlement Simulation
   updateProgress(1);
   let pct = 0;
   const iv = setInterval(() => {
@@ -344,19 +333,21 @@ const startSettlement = () => {
     if (pct >= 100) {
       clearInterval(iv);
       document.getElementById('syncBadge').className = "badge badge-grn";
-      document.getElementById('syncBadge').textContent = "Settled";
+      document.getElementById('syncBadge').textContent = "100% Settled";
       document.getElementById('convertBtn').disabled = false;
       document.getElementById('uwProposal').textContent = "2024-88412";
       document.getElementById('uwName').textContent = document.getElementById('f-holder').value;
       document.getElementById('uwPremium').textContent = fmt(state.activeTxn.premium);
       document.getElementById('uwCollected').textContent = fmt(state.activeTxn.amount);
       document.getElementById('uwExcess').textContent = fmt(state.activeTxn.excess);
-      addLog('SYNC', 'Bancs Confirmation Received');
+      addLog('SYNC', 'Bancs settlement complete');
     }
-  }, 300);
+  }, 200);
 };
 
-// STEP 3: CONVERT
+document.getElementById('loadTxnsBtn').onclick = renderFeed;
+
+// STEP 2: CONVERT
 document.getElementById('convertBtn').onclick = () => {
   state.policyId = "POL-88412-A";
   document.getElementById('policyBadge').textContent = state.policyId;
@@ -367,8 +358,8 @@ document.getElementById('convertBtn').onclick = () => {
   
   const excess = state.activeTxn.excess;
   document.getElementById('glBody').innerHTML = `
-    <tr><td class="gl-code">4401</td><td>Premium</td><td>${fmt(state.activeTxn.premium)}</td><td><span class="badge badge-grn">Posted</span></td><td>Revenue</td></tr>
-    ${excess > 0 ? `<tr><td class="gl-code">4404</td><td>Excess Hold</td><td>${fmt(excess)}</td><td><span class="badge badge-amb">Held</span></td><td>Suspense</td></tr>` : ''}
+    <tr><td class="gl-code">4401</td><td>First Year Premium</td><td>${fmt(state.activeTxn.premium)}</td><td><span class="badge badge-grn">posted</span></td><td>Revenue A/c</td></tr>
+    ${excess > 0 ? `<tr><td class="gl-code">4404</td><td>Excess Hold</td><td>${fmt(excess)}</td><td><span class="badge badge-amb">held</span></td><td>Suspense A/c</td></tr>` : ''}
   `;
   
   document.getElementById('pennyGrid').innerHTML = `
@@ -379,50 +370,46 @@ document.getElementById('convertBtn').onclick = () => {
   
   document.getElementById('runPennyBtn').disabled = false;
   updateProgress(2);
-  addLog('GL', 'Entries Mapped to Ledger');
+  addLog('GL', 'Premium mapped to Revenue; Excess to Suspense');
 };
 
-// STEP 4: PENNY DROP
-document.getElementById('runPennyBtn').onclick = async () => {
-  addLog('INFO', 'Initiating Penny Drop...');
-  const res = await fetch('verify-account');
-  if (res.ok) {
-    state.pennyVerified = true;
-    document.getElementById('pennyStat').innerHTML = `<span class="status-dot dot-grn"></span><span class="badge badge-grn">Verified</span>`;
-    document.getElementById('refundLock').style.color = "var(--grn)";
-    document.getElementById('lockIcon').style.background = "var(--grn-lt)";
-    document.getElementById('lockIcon').textContent = "✓";
-    document.getElementById('lockIcon').style.color = "var(--grn)";
-    document.getElementById('lockMsg').textContent = "Account Verified — Refund Unlocked";
-    document.getElementById('refundBtn').disabled = false;
-    document.getElementById('refundBtn').textContent = `Initiate Refund ${fmt(state.activeTxn.excess)}`;
-    updateProgress(3);
-    addLog('INFO', 'Penny Drop Success');
-  } else {
-    document.getElementById('errBanner').style.display = "block";
-    addLog('ERR', 'Penny Drop Failed');
+// STEP 3: PENNY DROP
+document.getElementById('runPennyBtn').onclick = () => {
+  if (state.simErr) {
+    document.getElementById('errBanner').style.display = "flex";
+    addLog('ERR', 'Penny Drop Failed: Bank Gateway Timeout');
+    return;
   }
+  state.pennyVerified = true;
+  document.getElementById('pennyStat').innerHTML = `<span class="status-dot dot-grn"></span><span class="badge badge-grn">Verified</span>`;
+  document.getElementById('lockIcon').style.background = "var(--grn-lt)";
+  document.getElementById('lockIcon').textContent = "✓";
+  document.getElementById('lockIcon').style.color = "var(--grn)";
+  document.getElementById('lockMsg').textContent = "Verified — Refund Unlocked";
+  document.getElementById('refundLock').style.color = "var(--grn)";
+  document.getElementById('refundBtn').disabled = false;
+  document.getElementById('refundBtn').textContent = `Initiate Refund ${fmt(state.activeTxn.excess)}`;
+  updateProgress(3);
+  addLog('PENNY', 'Penny Drop Success');
 };
 
-// STEP 5: REFUND
+// STEP 4: REFUND
 document.getElementById('refundBtn').onclick = () => {
-  addLog('GL', 'GL-4404 Cleared');
-  addLog('INFO', 'Refund Dispatched to StarPay');
+  addLog('INFO', 'Refund Request Dispatched');
   document.getElementById('refundBtn').disabled = true;
   document.getElementById('refundBtn').textContent = "Refund Dispatched";
   document.getElementById('refundBtn').className = "btn btn-grn";
-  updateProgress(5); // Hits 100%
-  addLog('SUCCESS', 'Lifecycle Completed');
+  updateProgress(4);
+  updateProgress(5);
+  addLog('GL', 'GL-4404 Suspense Cleared');
 };
 
-// TECH TOGGLE
-document.getElementById('techToggle').onchange = () => renderFeed();
-
-// SIM ERROR
+// TOGGLE & ERRORS
+document.getElementById('techToggle').onchange = renderFeed;
 document.getElementById('simErrBtn').onclick = () => {
   state.simErr = !state.simErr;
-  document.getElementById('simErrBtn').className = state.simErr ? "btn btn-or" : "btn btn-red";
-  addLog('WARN', `Simulation: Bank 500 ${state.simErr ? 'ON' : 'OFF'}`);
+  document.getElementById('simErrBtn').textContent = state.simErr ? "Bank Failure Enabled" : "Simulate Bank 500";
+  addLog('WARN', `Simulating Bank Failure: ${state.simErr}`);
 };
 </script>
 </body>
