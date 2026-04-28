@@ -71,6 +71,55 @@ body{font-family:'Inter',sans-serif;font-size:12px;color:var(--txt);background:v
 .hero-card.impact ul li::before{content:'↑';color:#60A5FA;font-size:11px;flex-shrink:0}
 .hero-card.impact ul li.down::before{content:'↓';color:#4ADE80}
 
+/* ── MY ROLE ── */
+.role-section{
+  background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  padding:24px 28px;margin-bottom:12px;
+}
+.role-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px}
+.role-sub{color:var(--muted);font-size:11px;margin-bottom:18px}
+.role-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.role-list li{
+  display:flex;align-items:flex-start;gap:10px;
+  font-size:12px;color:var(--txt);line-height:1.5;
+}
+.role-list li::before{
+  content:'◆';color:var(--or);font-size:8px;flex-shrink:0;margin-top:4px;
+}
+
+/* ── BEFORE VS AFTER ── */
+.bva-section{
+  background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  margin-bottom:12px;overflow:hidden;
+}
+.bva-header{
+  padding:14px 24px;border-bottom:1px solid var(--bdr);background:#fafafa;
+}
+.bva-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;margin-bottom:2px}
+.bva-sub{color:var(--muted);font-size:11px}
+.bva-grid{display:grid;grid-template-columns:1fr 1fr}
+.bva-col{padding:20px 24px}
+.bva-col.before{background:#FEF2F2;border-right:1px solid var(--bdr)}
+.bva-col.after{background:#F0FDF4}
+.bva-col-label{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+  margin-bottom:14px;display:flex;align-items:center;gap:8px;
+}
+.bva-col.before .bva-col-label{color:var(--red)}
+.bva-col.after .bva-col-label{color:var(--grn)}
+.bva-col-label::after{content:'';flex:1;height:1px}
+.bva-col.before .bva-col-label::after{background:#FECACA}
+.bva-col.after .bva-col-label::after{background:#BBF7D0}
+.bva-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.bva-list li{
+  font-size:11px;line-height:1.5;
+  display:flex;align-items:flex-start;gap:8px;
+}
+.bva-col.before .bva-list li{color:#7F1D1D}
+.bva-col.after .bva-list li{color:#14532D}
+.bva-col.before .bva-list li::before{content:'✕';color:var(--red);font-size:10px;flex-shrink:0;margin-top:1px;font-weight:700}
+.bva-col.after .bva-list li::before{content:'✓';color:var(--grn);font-size:10px;flex-shrink:0;margin-top:1px;font-weight:700}
+
 /* ── HOW IT WORKS ── */
 .how-section{
   background:var(--card);border:1px solid var(--bdr);border-radius:12px;
@@ -215,9 +264,56 @@ body{font-family:'Inter',sans-serif;font-size:12px;color:var(--txt);background:v
   </div>
 
   <!-- ══════════════════════════════════════════════
-       SECTION 2 — HOW IT WORKS
+       SECTION 2 — MY ROLE
   ══════════════════════════════════════════════ -->
-  <div class="how-section">
+  <div class="role-section">
+    <div class="role-title">My Role</div>
+    <div class="role-sub">Product Manager · End-to-end ownership from discovery to prototype</div>
+    <ul class="role-list">
+      <li>Designed end-to-end workflows for NEFT receipting and refund processing</li>
+      <li>Defined bank validation logic using penny drop and name match threshold</li>
+      <li>Identified key failure points in manual receipting and refund workflows</li>
+      <li>Collaborated with underwriting, finance, and operations teams to align system behavior</li>
+      <li>Ensured system-driven processing to reduce manual dependency and errors</li>
+    </ul>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION 3 — BEFORE VS AFTER
+  ══════════════════════════════════════════════ -->
+  <div class="bva-section">
+    <div class="bva-header">
+      <div class="bva-title">Before vs After</div>
+      <div class="bva-sub">What changed after implementing the system</div>
+    </div>
+    <div class="bva-grid">
+      <div class="bva-col before">
+        <div class="bva-col-label">Before</div>
+        <ul class="bva-list">
+          <li>NEFT payments required manual receipting by underwriters</li>
+          <li>High chances of incorrect mapping between payment and proposal</li>
+          <li>Refunds processed with unverified bank details</li>
+          <li>Higher risk of payment failures and fraudulent payouts</li>
+          <li>Longer turnaround time for refund processing</li>
+        </ul>
+      </div>
+      <div class="bva-col after">
+        <div class="bva-col-label">After</div>
+        <ul class="bva-list">
+          <li>Automated NEFT transaction ingestion into core system</li>
+          <li>Accurate mapping of payments to proposals</li>
+          <li>Refunds processed only after bank account validation</li>
+          <li>Reduced risk of fraud and payment failures</li>
+          <li>Faster and more reliable refund processing</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION 4 — HOW IT WORKS
+  ══════════════════════════════════════════════ -->
+  <div class="how-section" style="margin-bottom:12px">
     <div class="how-title">How It Works</div>
     <div class="how-sub">Two automated workflows replacing manual operations across receipting and refund dispatch</div>
     <div class="workflows">
@@ -267,7 +363,7 @@ body{font-family:'Inter',sans-serif;font-size:12px;color:var(--txt);background:v
   </div>
 
   <!-- ══════════════════════════════════════════════
-       SECTION 3 — KEY PM DECISIONS
+       SECTION 5 — KEY PRODUCT DECISIONS
   ══════════════════════════════════════════════ -->
   <div class="pm-section">
     <div class="pm-title">Key Product Decisions</div>
@@ -276,29 +372,36 @@ body{font-family:'Inter',sans-serif;font-size:12px;color:var(--txt);background:v
       <div class="decision-card">
         <div class="decision-num">1</div>
         <div class="decision-body">
-          <div class="decision-head">Used penny drop despite per-transaction cost to reduce fraud risk</div>
-          <div class="decision-detail">The ₹1 cost per validation is negligible compared to the risk of a failed or fraudulent refund to an incorrect account. Fraud prevention value far outweighed the operational cost.</div>
+          <div class="decision-head">Implemented penny drop verification despite added cost to ensure bank account authenticity and reduce fraud risk</div>
+          <div class="decision-detail">The ₹1 cost per validation is negligible compared to the risk of a failed or fraudulent refund. Fraud prevention value far outweighed the operational cost.</div>
         </div>
       </div>
       <div class="decision-card">
         <div class="decision-num">2</div>
         <div class="decision-body">
-          <div class="decision-head">Introduced a configurable name match threshold — not a hard rule</div>
-          <div class="decision-detail">A fixed threshold would either block too many legitimate refunds or let through too many mismatches. A configurable threshold gives ops teams the ability to balance fraud risk vs approval rate dynamically.</div>
+          <div class="decision-head">Introduced configurable name match threshold (e.g. 90%) to balance strict validation with approval rates</div>
+          <div class="decision-detail">A hard fixed threshold would block too many legitimate refunds or pass too many mismatches. Configurability gives ops teams control to tune fraud risk vs approval rate dynamically.</div>
         </div>
       </div>
       <div class="decision-card">
         <div class="decision-num">3</div>
         <div class="decision-body">
-          <div class="decision-head">Reduced dependency on underwriters through system-triggered workflows</div>
-          <div class="decision-detail">Previously, UW tagging required manual intervention. Automating the proposal-to-receipt mapping removed a bottleneck step and cut processing TAT significantly.</div>
+          <div class="decision-head">Designed system-driven workflows to minimize dependency on manual intervention by underwriters</div>
+          <div class="decision-detail">Previously UW tagging required manual steps at every stage. Automating proposal-to-receipt mapping removed the bottleneck and cut processing TAT significantly.</div>
+        </div>
+      </div>
+      <div class="decision-card">
+        <div class="decision-num">4</div>
+        <div class="decision-body">
+          <div class="decision-head">Ensured refund processing is restricted to verified premium payer accounts only</div>
+          <div class="decision-detail">Refunds can only be dispatched to the account that originally sent the premium payment — preventing misdirected payouts even in edge cases like changed account details.</div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ══════════════════════════════════════════════
-       SECTION 4 — IMPACT METRICS
+       SECTION 6 — IMPACT METRICS
   ══════════════════════════════════════════════ -->
   <div class="impact-section">
     <div class="impact-title">Impact at a Glance</div>
